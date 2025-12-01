@@ -140,5 +140,11 @@ namespace RecycleScrollView.Sample
             _scrollController.RemoveElement(removeIndex);
         }
 
+        [ContextMenu(nameof(TempTest))]
+        private void TempTest()
+        {
+            _scrollController.JumpToElementInstant(0, 0f, 0f);
+        }
+
     }
 }

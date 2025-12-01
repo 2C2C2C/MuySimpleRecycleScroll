@@ -27,7 +27,6 @@ namespace RecycleScrollView
         private RecycleSingleDirectionScrollElement m_preCacheHeadElement;
         private RecycleSingleDirectionScrollElement m_preCacheTailElement;
 
-        private bool m_hasLateUpdateOnce = false;
         private bool m_hasAdjustElementsCurrentFrame = false;
         private bool m_hasPositionChangeCurrentFrame = false;
 
@@ -94,30 +93,10 @@ namespace RecycleScrollView
                 }
 
                 int dataCount = m_dataSource.DataElementCount;
-                if (null == m_preCacheHeadElement)
-                {
-                    int headElementIndex = CalculateAvailabeNextHeadElementIndex();
-                    if (-1 == headElementIndex)
-                    {
-                        headElementIndex = 0;
-                    }
-                    m_preCacheHeadElement = InternalCreateElement(headElementIndex);
-                    m_preCacheHeadElement.ElementTransform.SetParent(_preCacheContainer);
-                    m_preCacheHeadElement.ClearPreferredSize();
-                    m_preCacheHeadElement.CalculatePreferredSize();
-                }
-                if (null == m_preCacheTailElement)
-                {
-                    int tailElementIndex = CalculateAvailabeNextTailElementIndex();
-                    if (-1 == tailElementIndex)
-                    {
-                        tailElementIndex = dataCount - 1;
-                    }
-                    m_preCacheTailElement = InternalCreateElement(tailElementIndex);
-                    m_preCacheTailElement.ElementTransform.SetParent(_preCacheContainer);
-                    m_preCacheTailElement.ClearPreferredSize();
-                    m_preCacheTailElement.CalculatePreferredSize();
-                }
+                int headElementIndex = CalculateAvailabeNextHeadElementIndex();
+                SetPreCacheElement(headElementIndex, ref m_preCacheHeadElement);
+                int tailElementIndex = CalculateAvailabeNextTailElementIndex();
+                SetPreCacheElement(tailElementIndex, ref m_preCacheTailElement);
                 _scrollRect.CallUpdateBoundsAndPrevData();
                 OnDataElementCountChanged(m_dataSource.DataElementCount);
             }
@@ -130,6 +109,17 @@ namespace RecycleScrollView
                 InternalRemoveElement(m_currentUsingElements[i]);
             }
             m_currentUsingElements.Clear();
+
+            if (null != m_preCacheHeadElement)
+            {
+                m_dataSource.ReturnElement(m_preCacheHeadElement.ElementTransform);
+                m_preCacheHeadElement = null;
+            }
+            if (null != m_preCacheTailElement)
+            {
+                m_dataSource.ReturnElement(m_preCacheTailElement.ElementTransform);
+                m_preCacheTailElement = null;
+            }
         }
 
         public void NotifyElementSizeChange(int dataIndex, bool forceRebuild)
@@ -340,6 +330,7 @@ namespace RecycleScrollView
                 --m_hasSetScrollBarValueThisFrame;
                 // Debug.LogError($"skip once; Frame {Time.frameCount}");
             }
+            // Debug.LogError($"Check content localpos {_scrollRect.content.localPosition} || Frame:{Time.frameCount}");
         }
 
         protected override void OnEnable()

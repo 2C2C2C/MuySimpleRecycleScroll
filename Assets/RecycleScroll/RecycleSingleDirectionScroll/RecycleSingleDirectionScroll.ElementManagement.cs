@@ -21,20 +21,9 @@ namespace RecycleScrollView
             newElement.transform.SetAsFirstSibling();
             newElement.SetIndex(elementIndex, ElementIndexDataIndex2WayConvert(elementIndex));
 
-            if (null != m_preCacheHeadElement)
-            {
-                int indexToSet = (0 < elementIndex) ? elementIndex : elementIndex - 1;
-                if (m_preCacheHeadElement.ElementIndex != indexToSet)
-                {
-                    m_dataSource.ChangeElementIndex(m_preCacheHeadElement.ElementTransform, m_preCacheHeadElement.DataIndex, ElementIndexDataIndex2WayConvert(indexToSet));
-                    m_preCacheHeadElement.SetIndex(indexToSet, ElementIndexDataIndex2WayConvert(indexToSet));
-                    m_preCacheHeadElement.ClearPreferredSize();
-                    m_preCacheHeadElement.CalculatePreferredSize();
-#if UNITY_EDITOR
-                    ChangeObjectName_EditorOnly(m_preCacheHeadElement, elementIndex);
-#endif
-                }
-            }
+            // Set pre cache element
+            int indexForPreCache = (0 < elementIndex) ? elementIndex - 1 : 0;
+            SetPreCacheElement(indexForPreCache, ref m_preCacheHeadElement);
             // Debug.LogError($"Add on top index {elementIndex} Time {Time.time}");
         }
 
@@ -46,21 +35,9 @@ namespace RecycleScrollView
             newElement.transform.SetAsLastSibling();
             newElement.SetIndex(elementIndex, ElementIndexDataIndex2WayConvert(elementIndex));
 
-            if (null != m_preCacheTailElement)
-            {
-                int dataCount = m_dataSource.DataElementCount;
-                int indexToSet = (dataCount - 1 > elementIndex) ? elementIndex + 1 : elementIndex;
-                if (m_preCacheTailElement.ElementIndex != indexToSet)
-                {
-                    m_dataSource.ChangeElementIndex(m_preCacheTailElement.ElementTransform, m_preCacheHeadElement.DataIndex, ElementIndexDataIndex2WayConvert(indexToSet));
-                    m_preCacheTailElement.SetIndex(indexToSet, ElementIndexDataIndex2WayConvert(indexToSet));
-                    m_preCacheTailElement.ClearPreferredSize();
-                    m_preCacheTailElement.CalculatePreferredSize();
-#if UNITY_EDITOR
-                    ChangeObjectName_EditorOnly(m_preCacheTailElement, indexToSet);
-#endif
-                }
-            }
+            int dataCount = m_dataSource.DataElementCount;
+            int indexForPreCache = (dataCount - 1 > elementIndex) ? elementIndex + 1 : elementIndex;
+            SetPreCacheElement(indexForPreCache, ref m_preCacheTailElement);
             // Debug.LogError($"Add on bottom index {elementIndex} Time {Time.time}");
         }
 
@@ -500,21 +477,53 @@ namespace RecycleScrollView
             switch (_scrollParam.scrollDirection)
             {
                 case ScrollDirection.Horizontal_LeftToRight:
-                    result = new Vector2(Mathf.Lerp(0f, 1f, normalizedValue), 0.5f);
+                    result = new Vector2(Mathf.Lerp(0f, 1f, normalizedValue), 0f);
                     break;
                 case ScrollDirection.Horizontal_RightToLeft:
-                    result = new Vector2(Mathf.Lerp(1f, 0f, normalizedValue), 0.5f);
+                    result = new Vector2(Mathf.Lerp(1f, 0f, normalizedValue), 0f);
                     break;
                 case ScrollDirection.Vertical_UpToDown:
-                    result = new Vector2(0.5f, Mathf.Lerp(1f, 0f, normalizedValue));
+                    result = new Vector2(0f, Mathf.Lerp(1f, 0f, normalizedValue));
                     break;
                 case ScrollDirection.Vertical_DownToUp:
-                    result = new Vector2(0.5f, Mathf.Lerp(0f, 1f, normalizedValue));
+                    result = new Vector2(0f, Mathf.Lerp(0f, 1f, normalizedValue));
                     break;
                 default:
                     break;
             }
             return result;
+        }
+
+        private void SetPreCacheElement(int elementIndex, ref RecycleSingleDirectionScrollElement element)
+        {
+            if (null != m_dataSource)
+            {
+                int dataCount = m_dataSource.DataElementCount;
+                elementIndex = Mathf.Clamp(elementIndex, 0, dataCount - 1);
+
+                if (null == element)
+                {
+                    element = InternalCreateElement(elementIndex);
+                    element.ElementTransform.SetParent(_preCacheContainer);
+                    element.ClearPreferredSize();
+                    element.CalculatePreferredSize();
+                }
+                else if (element.ElementIndex != elementIndex)
+                {
+                    m_dataSource.ChangeElementIndex(element.ElementTransform, element.DataIndex, ElementIndexDataIndex2WayConvert(elementIndex));
+                    element.SetIndex(elementIndex, ElementIndexDataIndex2WayConvert(elementIndex));
+                    element.ClearPreferredSize();
+                    element.CalculatePreferredSize();
+                }
+                else
+                {
+                    return;
+                }
+
+#if UNITY_EDITOR
+                ChangeObjectName_EditorOnly(element, elementIndex);
+#endif
+            }
         }
 
     }
