@@ -146,7 +146,10 @@ namespace RecycleScrollView.Sample
 
         public void ChangeElementIndex(RectTransform element, int prevIndex, int nextIndex)
         {
-            if (element.TryGetComponent<ChatElementUI>(out ChatElementUI chatElementUI))
+            int dataCount = DataElementCount;
+            if (element.TryGetComponent<ChatElementUI>(out ChatElementUI chatElementUI) &&
+                -1 < nextIndex &&
+                dataCount > nextIndex)
             {
                 ChatData data = m_chatList[nextIndex];
                 chatElementUI.SetText(data.mainContent, data.quoteContent);

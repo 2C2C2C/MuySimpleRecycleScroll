@@ -65,16 +65,24 @@ namespace RecycleScrollView.Sample
         {
             if (element.TryGetComponent<TextElementUI>(out TextElementUI textElement))
             {
-                float tempSize = m_elementSizeList[nextIndex];
-                if (_scrollController.IsHorizontal)
+                int dataCount = m_elementSizeList.Count;
+                if (0 > nextIndex || dataCount <= nextIndex)
                 {
-                    textElement.SetWidth(tempSize);
+                    // 
                 }
-                else if (_scrollController.IsVertical)
+                else
                 {
-                    textElement.SetHeight(tempSize);
+                    float tempSize = m_elementSizeList[nextIndex];
+                    if (_scrollController.IsHorizontal)
+                    {
+                        textElement.SetWidth(tempSize);
+                    }
+                    else if (_scrollController.IsVertical)
+                    {
+                        textElement.SetHeight(tempSize);
+                    }
+                    textElement.SetText($"size: {tempSize}");
                 }
-                textElement.SetText($"size: {tempSize}");
             }
         }
 
@@ -130,6 +138,12 @@ namespace RecycleScrollView.Sample
             }
             OnDataElementCountChanged?.Invoke(DataElementCount);
             _scrollController.RemoveElement(removeIndex);
+        }
+
+        [ContextMenu(nameof(TempTest))]
+        private void TempTest()
+        {
+            _scrollController.JumpToElementInstant(0, 0f, 0f);
         }
 
     }

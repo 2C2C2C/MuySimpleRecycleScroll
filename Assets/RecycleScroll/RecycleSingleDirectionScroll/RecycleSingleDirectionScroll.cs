@@ -11,6 +11,7 @@ namespace RecycleScrollView
     [RequireComponent(typeof(UnityScrollRectExtended))]
     public partial class RecycleSingleDirectionScroll : UIBehaviour
     {
+        [Header("Main params")]
         [SerializeField]
         private UnityScrollRectExtended _scrollRect;
         [SerializeField]
@@ -19,6 +20,12 @@ namespace RecycleScrollView
         // Simple layout param
         [SerializeField]
         private SingleDirectionScrollParam _scrollParam;
+
+        // HACK
+        [SerializeField]
+        private RectTransform _preCacheContainer;
+        private RecycleSingleDirectionScrollElement m_preCacheHeadElement;
+        private RecycleSingleDirectionScrollElement m_preCacheTailElement;
 
         private bool m_hasAdjustElementsCurrentFrame = false;
         private bool m_hasPositionChangeCurrentFrame = false;
@@ -76,6 +83,7 @@ namespace RecycleScrollView
                 }
                 m_dataSource.OnDataElementCountChanged += m_onDataElementCountChanged;
                 ApplyLayoutSetting();
+                ApplyLayoutSettingToScrollBar();
                 while (SIDE_STATUS_NEEDADD == CheckTailSideStatus())
                 {
                     if (!AddElementsToTailIfNeed())
@@ -83,6 +91,12 @@ namespace RecycleScrollView
                         break;
                     }
                 }
+
+                int dataCount = m_dataSource.DataElementCount;
+                int headElementIndex = CalculateAvailabeNextHeadElementIndex();
+                SetPreCacheElement(headElementIndex, ref m_preCacheHeadElement);
+                int tailElementIndex = CalculateAvailabeNextTailElementIndex();
+                SetPreCacheElement(tailElementIndex, ref m_preCacheTailElement);
                 _scrollRect.CallUpdateBoundsAndPrevData();
                 OnDataElementCountChanged(m_dataSource.DataElementCount);
             }
@@ -95,44 +109,29 @@ namespace RecycleScrollView
                 InternalRemoveElement(m_currentUsingElements[i]);
             }
             m_currentUsingElements.Clear();
-        }
 
-        public int GetCurrentShowingElementIndexLowerBound()
-        {
-            int elementCount = m_currentUsingElements.Count;
-            int result = -1;
-            if (0 < elementCount)
+            if (null != m_preCacheHeadElement)
             {
-                result = _scrollParam.reverseArrangement ?
-                    m_currentUsingElements[elementCount - 1].ElementIndex :
-                    m_currentUsingElements[0].ElementIndex;
+                m_dataSource.ReturnElement(m_preCacheHeadElement.ElementTransform);
+                m_preCacheHeadElement = null;
             }
-            return result;
-        }
-
-        public int GetCurrentShowingElementIndexUpperBound()
-        {
-            int elementCount = m_currentUsingElements.Count;
-            int result = -1;
-            if (0 < elementCount)
+            if (null != m_preCacheTailElement)
             {
-                result = _scrollParam.reverseArrangement ?
-                    m_currentUsingElements[0].ElementIndex :
-                    m_currentUsingElements[elementCount - 1].ElementIndex;
+                m_dataSource.ReturnElement(m_preCacheTailElement.ElementTransform);
+                m_preCacheTailElement = null;
             }
-            return result;
         }
 
-        public void NotifyElementSizeChange(int index, bool forceRebuild)
+        public void NotifyElementSizeChange(int dataIndex, bool forceRebuild)
         {
             int indexLowerBound = GetCurrentShowingElementIndexLowerBound();
             int indexUpperBound = GetCurrentShowingElementIndexUpperBound();
-            if (indexLowerBound <= index && index <= indexUpperBound)
+            if (indexLowerBound <= dataIndex && dataIndex <= indexUpperBound)
             {
                 for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
                 {
                     RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
-                    if (index == element.ElementIndex)
+                    if (dataIndex == element.DataIndex)
                     {
                         element.CalculatePreferredSize();
                         if (forceRebuild)
@@ -205,20 +204,20 @@ namespace RecycleScrollView
             }
         }
 
-        private void InternalChangeElementIndex(RecycleSingleDirectionScrollElement element, int nextIndex, bool needReCalculateSize)
+        private void InternalChangeElementIndex(RecycleSingleDirectionScrollElement element, int nextElementIndex, bool needReCalculateSize)
         {
             if (needReCalculateSize)
             {
                 element.ClearPreferredSize();
             }
-            m_dataSource.ChangeElementIndex(element.ElementTransform, element.ElementIndex, nextIndex);
-            element.SetIndex(nextIndex);
+            m_dataSource.ChangeElementIndex(element.ElementTransform, ElementIndexDataIndex2WayConvert(element.ElementIndex), ElementIndexDataIndex2WayConvert(nextElementIndex));
+            element.SetIndex(nextElementIndex, ElementIndexDataIndex2WayConvert(nextElementIndex));
             if (needReCalculateSize)
             {
                 element.CalculatePreferredSize();
             }
 #if UNITY_EDITOR
-            ChangeObjectName_EditorOnly(element, nextIndex);
+            ChangeObjectName_EditorOnly(element, nextElementIndex);
 #endif
         }
 
@@ -266,37 +265,19 @@ namespace RecycleScrollView
             return hasAddToHead || hasAddToTail;
         }
 
-        private void RemoveElementFromHead()
-        {
-            RecycleSingleDirectionScrollElement element = m_currentUsingElements[0];
-            // int dataIndex = element.ElementIndex;
-            // Debug.LogError($"Remove on top data{dataIndex} Time {Time.time}");
-            m_currentUsingElements.RemoveAt(0);
-            InternalRemoveElement(element);
-        }
-
-        private void RemoveElementFromTail()
-        {
-            int elementIndex = m_currentUsingElements.Count - 1;
-            RecycleSingleDirectionScrollElement element = m_currentUsingElements[elementIndex];
-            // int dataIndex = element.ElementIndex;
-            // Debug.LogError($"Remove on bottom data{dataIndex} Time {Time.time}");
-            m_currentUsingElements.RemoveAt(elementIndex);
-            InternalRemoveElement(element);
-        }
-
-        private RecycleSingleDirectionScrollElement InternalCreateElement(int dataIndex)
+        private RecycleSingleDirectionScrollElement InternalCreateElement(int elementIndex)
         {
             RectTransform content = _scrollRect.content;
             RecycleSingleDirectionScrollElement newElement;
-            RectTransform requestedElement = m_dataSource.RequestElement(content, dataIndex);
+            RectTransform requestedElement = m_dataSource.RequestElement(content, ElementIndexDataIndex2WayConvert(elementIndex));
             if (!requestedElement.TryGetComponent<RecycleSingleDirectionScrollElement>(out newElement))
             {
                 Debug.LogError($"[RecycleScrollView] receive wrong element");
             }
             newElement.CalculatePreferredSize();
+
 #if UNITY_EDITOR
-            ChangeObjectName_EditorOnly(newElement, dataIndex);
+            ChangeObjectName_EditorOnly(newElement, elementIndex);
 #endif
             return newElement;
         }
@@ -323,6 +304,7 @@ namespace RecycleScrollView
 
         private void OnDataElementCountChanged(int count)
         {
+            AdjustScrollBarSize();
         }
 
         private void OnLateUpdated()
@@ -337,6 +319,18 @@ namespace RecycleScrollView
             }
             m_hasAdjustElementsCurrentFrame = false;
             m_hasPositionChangeCurrentFrame = false;
+
+            // HACK The layout has not fully refreshed at the 1st frame :(
+            if (0 == m_hasSetScrollBarValueThisFrame)
+            {
+                UpdateScrollProgress();
+            }
+            else
+            {
+                --m_hasSetScrollBarValueThisFrame;
+                // Debug.LogError($"skip once; Frame {Time.frameCount}");
+            }
+            // Debug.LogError($"Check content localpos {_scrollRect.content.localPosition} || Frame:{Time.frameCount}");
         }
 
         protected override void OnEnable()
@@ -352,10 +346,13 @@ namespace RecycleScrollView
             }
             _scrollRect.AfterLateUpdate += m_onLateUpdated;
 
+            BindScrollBar();
         }
 
         protected override void OnDisable()
         {
+            UnBindScrollBar();
+
             if (null != m_onScrollPositionChanged)
             {
                 _scrollRect.onValueChanged.RemoveListener(m_onScrollPositionChanged);
@@ -368,10 +365,9 @@ namespace RecycleScrollView
 
 #if UNITY_EDITOR
 
-        private void ChangeObjectName_EditorOnly(MonoBehaviour behaviour, int dataIndex)
+        private void ChangeObjectName_EditorOnly(MonoBehaviour behaviour, int elementIndex)
         {
-            behaviour.name = $"Element {dataIndex}";
-            // Debug.LogError($"Check; index {dataIndex}; size {newElement.ElementPreferredSize}");
+            behaviour.name = $"Element {elementIndex}; DataIndex {ElementIndexDataIndex2WayConvert(elementIndex)}";
         }
 
         protected override void Reset()
