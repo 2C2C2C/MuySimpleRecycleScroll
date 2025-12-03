@@ -10,11 +10,11 @@ namespace RecycleScrollView
 {
     public partial class RecycleSingleDirectionScroll
     {
-        internal struct TempPack
+        internal readonly struct ProgressResultPack
         {
-            public int elementIndex;
-            public float result;
-            public TempPack(int i, float r)
+            public readonly int elementIndex;
+            public readonly float result;
+            public ProgressResultPack(int i, float r)
             {
                 elementIndex = i;
                 result = r;
@@ -35,8 +35,8 @@ namespace RecycleScrollView
         private float m_virtualNormalizedScrollBarValue; // TODO Should be non-serialized but show in inspector
 
         private int m_hasSetScrollBarValueThisFrame = 0;
-        private List<TempPack> m_tempList = new List<TempPack>(20);
-        private Comparison<TempPack> m_packSort = null;
+        private List<ProgressResultPack> m_tempList = new List<ProgressResultPack>(20);
+        private Comparison<ProgressResultPack> m_packSort = null;
 
         private void BindScrollBar()
         {
@@ -116,12 +116,7 @@ namespace RecycleScrollView
             if (CalculateCurrentScrollProgress(out float scrollPogress) &&
                 !Mathf.Approximately(scrollPogress, m_scrollProgress))
             {
-                // Debug.LogError($"Check content localpos {_scrollRect.content.localPosition} || Frame:{Time.frameCount}");
-                // Debug.LogError($"sync progress from {m_scrollProgress} to {scrollPogress} || Frame {Time.frameCount}");
-                if (scrollPogress < m_scrollProgress)
-                {
-                    CalculateCurrentScrollProgress(out _);
-                }
+                Log($"Sync scroll progress from {m_scrollProgress} to {scrollPogress} by scroll content.");
                 m_scrollProgress = scrollPogress;
                 float scrollBarValue = 1f - m_scrollProgress;
                 _scrollBar.SetValueWithoutNotify(m_virtualNormalizedScrollBarValue = scrollBarValue);
@@ -157,13 +152,13 @@ namespace RecycleScrollView
                 {
                     float stepSize = 1f / (dataCount - 1);
                     int stepLowBoundElementIndex = Mathf.FloorToInt(scrollProgress / stepSize);
-                    // int stepHighBoundElementIndex = Mathf.Clamp(stepLowBoundElementIndex + 1, stepLowBoundElementIndex, dataCount - 1);
                     normalizedScrollProgressBase = stepLowBoundElementIndex * stepSize;
                     elementIndex = stepLowBoundElementIndex;
                     normalizedScrollProgressOffset = scrollProgress - normalizedScrollProgressBase;
                 }
                 return true;
             }
+
             elementIndex = -1;
             normalizedScrollProgressBase = 0f;
             normalizedScrollProgressOffset = 0f;
@@ -181,7 +176,7 @@ namespace RecycleScrollView
 
             int elementCount = m_currentUsingElements.Count;
             bool canCalculatValidPos = false;
-            // string debugMsg = "EEEE \n";
+            // string debugMsg = " \n";
             for (int i = 0; i < elementCount; i++)
             {
                 RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
@@ -189,25 +184,15 @@ namespace RecycleScrollView
                 // debugMsg += $"Element_{element.ElementIndex}_{canCalculatValidPos}; expectedNormalizedBasePosition {expectedNormalizedBasePosition}; finalizedPosition {finalizedPosition} \n";
                 if (canCalculatValidPos)
                 {
-                    m_tempList.Add(new TempPack(element.ElementIndex, finalizedPosition));
+                    m_tempList.Add(new ProgressResultPack(element.ElementIndex, finalizedPosition));
                 }
             }
-            // Debug.LogError(debugMsg);
+            // Log(debugMsg);
 
             if (0 == m_tempList.Count)
             {
-                Debug.LogError($"Can not calculate value");
-                result = 0f;
-                for (int i = 0; i < elementCount; i++)
-                {
-                    RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
-                    canCalculatValidPos = TryCalculateScrollProgressFromElement(element, out float expectedNormalizedBasePosition, out float finalizedPosition);
-                    // debugMsg += $"Element_{element.ElementIndex}_{canCalculatValidPos}; expectedNormalizedBasePosition {expectedNormalizedBasePosition}; deltaToExpectedPosition {deltaToExpectedPosition}; finalizedPosition {finalizedPosition} \n";
-                    if (canCalculatValidPos)
-                    {
-                        m_tempList.Add(new TempPack(element.ElementIndex, finalizedPosition));
-                    }
-                }
+                LogError($"Can not calculate progress.");
+                result = m_scrollProgress;
                 return false;
             }
 
@@ -327,7 +312,7 @@ namespace RecycleScrollView
                 }
                 else
                 {
-                    Debug.LogError($"asdsadas");
+                    LogError($"Wrong case"); // Should not get this case
                 }
             }
             // Less than pre-calculated base position -> try gap to previous element
@@ -343,7 +328,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        // Debug.LogError($"Check {elementIndex} {expectedNormalizedBasePosition} {deltaToExpectedPosition}");
+                        // Log($"Check {elementIndex} {expectedNormalizedBasePosition} {deltaToExpectedPosition}");
                         if (TryCalculateGapBetweenElement(elementIndex - 2, elementIndex - 1, out float nextGapSize) &&
                             tempDelta - gapSize <= nextGapSize)
                         {
@@ -362,7 +347,7 @@ namespace RecycleScrollView
                 }
                 else
                 {
-                    Debug.LogError($"asdsadas");
+                    LogError($"Wrong case"); // Should not get this case
                 }
             }
             return false;
@@ -381,7 +366,6 @@ namespace RecycleScrollView
 
         private void OnScrollBarValueChanged(float scrollbarValue)
         {
-            // _scrollBar.SetValueWithoutNotify(m_virtualNormalizedScrollBarValue = 1f - Mathf.Clamp01(m_scrollProgress));
             float clampedBarValue = Mathf.Clamp01(scrollbarValue);
             float normalizedProgress = 1f - clampedBarValue;
 
@@ -389,21 +373,19 @@ namespace RecycleScrollView
             if (Mathf.Approximately(clampedBarValue, m_virtualNormalizedScrollBarValue))
             {
                 _scrollBar.SetValueWithoutNotify(m_virtualNormalizedScrollBarValue);
-                // Debug.LogError($"wanna set scroll {m_scrollProgress} -> {normalizedProgress} || FALSE; Frame {Time.frameCount}");
                 return;
             }
 
             if (TryApplyNormalizedPosition(normalizedProgress))
             {
                 m_hasAdjustElementsCurrentFrame = true;
-                // TryApplyNormalizedPosition(normalizedProgress);
-                // Debug.LogError($"wanna set scroll {m_scrollProgress} -> {normalizedProgress} || TRUE; Frame {Time.frameCount}");
+                Log($"Apply scroll progress from {m_scrollProgress} to {normalizedProgress} by scrollbar");
                 m_scrollProgress = normalizedProgress;
                 _scrollBar.SetValueWithoutNotify(m_virtualNormalizedScrollBarValue = clampedBarValue);
             }
             else
             {
-                // Debug.LogError($"wanna set scroll {m_scrollProgress} -> {normalizedProgress} || FALSE; Frame {Time.frameCount}");
+                LogError($"Apply scroll progress from {m_scrollProgress} to {normalizedProgress} by scrollbar FAIL!!!");
                 _scrollBar.SetValueWithoutNotify(m_virtualNormalizedScrollBarValue);
             }
         }

@@ -59,7 +59,7 @@ namespace RecycleScrollView
             }
             else
             {
-                Debug.LogError($"SizeSource需要继承ILayoutElement", context: this);
+                Debug.LogError($"SizeSource should be ILayoutElement", context: this);
             }
         }
 

@@ -259,7 +259,7 @@ namespace RecycleScrollView
                         break;
                     case ScrollDirection.Horizontal_LeftToRight:
                         delta = contentTailRectPosition.x - viewportTailRectPosition.x;
-                        // UnityEngine.Debug.LogError($"{contentTailRectPosition.x} - {viewportTailRectPosition.x} = {delta}");
+                        // LogError($"{contentTailRectPosition.x} - {viewportTailRectPosition.x} = {delta}");
                         // if (0f > delta)
                         // {
                         //     result.x -= delta;
@@ -267,7 +267,7 @@ namespace RecycleScrollView
                         break;
                     case ScrollDirection.Horizontal_RightToLeft:
                         delta = contentTailRectPosition.x - viewportTailRectPosition.x;
-                        // UnityEngine.Debug.LogError($"{contentTailRectPosition.x} - {viewportTailRectPosition.x} = {delta}");
+                        // LogError($"{contentTailRectPosition.x} - {viewportTailRectPosition.x} = {delta}");
                         // if (0f > delta)
                         // {
                         //     result.x -= delta;
@@ -279,16 +279,6 @@ namespace RecycleScrollView
             }
             return result;
         }
-
-        // private void PrintEdge()
-        // {
-        //     RectTransform viewport = _scrollRect.viewport;
-        //     Vector2 edgeHead = CalculateNormalizedRectPosition(0f);
-        //     Vector2 edgeTail = CalculateNormalizedRectPosition(1f);
-        //     Vector3 edgeHeadLocalPos = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, edgeHead);
-        //     Vector3 edgeTailLocalPos = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, edgeTail);
-        //     Debug.LogError($"Check edge local pos; Head {edgeHeadLocalPos}; Tail {edgeTailLocalPos}");
-        // }
 
     }
 }

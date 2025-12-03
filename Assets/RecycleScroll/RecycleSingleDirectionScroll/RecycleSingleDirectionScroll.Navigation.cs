@@ -40,7 +40,7 @@ namespace RecycleScrollView
                     Vector2 elementPosition = RectTransformEx.TransformNormalizedRectPositionToWorldPosition(element.ElementTransform, new Vector2(0f, navigationParams.normalizedElementPositionAdjustment));
                     elementPosition = viewport.InverseTransformPoint(elementPosition);
                     delta = verticalPostion - elementPosition;
-                    Debug.LogError($"elementPosition_{elementPosition} -> verticalPostion_{verticalPostion}");
+                    // LogError($"elementPosition_{elementPosition} -> verticalPostion_{verticalPostion}");
                 }
                 else if (IsVertical)
                 {
@@ -48,7 +48,7 @@ namespace RecycleScrollView
                     Vector2 elementPosition = RectTransformEx.TransformNormalizedRectPositionToWorldPosition(element.ElementTransform, new Vector2(navigationParams.normalizedElementPositionAdjustment, 0f));
                     elementPosition = viewport.InverseTransformPoint(elementPosition);
                     delta = horizontalPosition - elementPosition;
-                    Debug.LogError($"elementPosition_{elementPosition} -> horizontalPosition_{horizontalPosition}");
+                    // LogError($"elementPosition_{elementPosition} -> horizontalPosition_{horizontalPosition}");
                 }
                 Vector2 localPosition = content.localPosition;
                 localPosition += delta;
@@ -184,7 +184,7 @@ namespace RecycleScrollView
 
         private void InternalJumpToExistElement(int elementIndex, float normalizedScrollProgressBase, float normalizedScrollProgressOffset)
         {
-            // Debug.LogError($"InternalJumpToExistElement elementIndex_{elementIndex}; normalizedScrollProgressBase_{normalizedScrollProgressBase}; normalizedScrollProgressOffset_{normalizedScrollProgressOffset} || Frame:{Time.frameCount}");
+            // LogError($"InternalJumpToExistElement elementIndex_{elementIndex}; normalizedScrollProgressBase_{normalizedScrollProgressBase}; normalizedScrollProgressOffset_{normalizedScrollProgressOffset} || Frame:{Time.frameCount}");
             if (null == m_dataSource || elementIndex < 0 || elementIndex >= m_dataSource.DataElementCount)
             {
                 return;
@@ -211,7 +211,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        Debug.LogError($"Error case || Frame:{Time.frameCount}");
+                        LogError($"Error case");
                     }
                 }
                 else if (0f > tempMove)
@@ -222,7 +222,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        Debug.LogError($"Error case || Frame:{Time.frameCount}");
+                        LogError($"Error case");
                     }
                 }
                 else // 0f == tempMove // no need move
@@ -246,7 +246,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        Debug.LogError($"Error case || Frame:{Time.frameCount}");
+                        LogError($"Error case");
                     }
                 }
                 else if (0f < currentNormalizedProgressOffset)
@@ -259,12 +259,12 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        Debug.LogError($"Error case || Frame:{Time.frameCount}");
+                        LogError($"Error case");
                     }
                 }
 
-                // Debug.LogError($"Set progress {m_scrollProgress}->{targetProgress} || Frame:{Time.frameCount}");
-                // Debug.LogError($"Set base element {currentBaseIndex}->{elementIndex} || Frame:{Time.frameCount}");
+                // LogError($"Set progress {m_scrollProgress}->{targetProgress} || Frame:{Time.frameCount}");
+                // LogError($"Set base element {currentBaseIndex}->{elementIndex} || Frame:{Time.frameCount}");
                 while (tempIndex < elementIndex)
                 {
                     SetPreCacheElement(tempIndex + 1, ref m_preCacheTailElement);
@@ -309,7 +309,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        Debug.LogError($"Error case || Frame:{Time.frameCount}"); // TODO
+                        LogError($"Error case"); // TODO
                     }
                 }
                 else if (0f < normalizedScrollProgressOffset)
@@ -324,7 +324,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        Debug.LogError($"Error case || Frame:{Time.frameCount}"); // TODO
+                        LogError($"Error case"); // TODO
                     }
                 }
             }
@@ -334,17 +334,17 @@ namespace RecycleScrollView
             Vector3 localPosition = content.localPosition;
             localPosition += (Vector3)move;
 
-            // Debug.LogError($"Set local pos {content.localPosition}->{localPosition} ; move {move} || Frame:{Time.frameCount}");
+            // LogError($"Set local pos {content.localPosition}->{localPosition} ; move {move} || Frame:{Time.frameCount}");
             localPosition = ClampLocalPosInForHead(localPosition);
             //localPosition = ClampLocalPosInForTail(localPosition);
             content.localPosition = localPosition;
             // PrintEdge();
-            // Debug.LogError($"Set content local pos {_scrollRect.content.localPosition} || Frame:{Time.frameCount}");
+            // LogError($"Set content local pos {_scrollRect.content.localPosition} || Frame:{Time.frameCount}");
         }
 
         private void InternalJumpToNonExistElement(int elementIndex, float normalizedScrollProgressBase, float normalizedScrollProgressOffset)
         {
-            // Debug.LogError($"InternalJumpToNonExistElement elementIndex_{elementIndex}; normalizedScrollProgressBase_{normalizedScrollProgressBase}; normalizedScrollProgressOffset_{normalizedScrollProgressOffset} || Frame:{Time.frameCount}");
+            // LogError($"InternalJumpToNonExistElement elementIndex_{elementIndex}; normalizedScrollProgressBase_{normalizedScrollProgressBase}; normalizedScrollProgressOffset_{normalizedScrollProgressOffset} || Frame:{Time.frameCount}");
             RectTransform content = _scrollRect.content;
             RectTransform viewport = _scrollRect.viewport;
 
@@ -453,11 +453,11 @@ namespace RecycleScrollView
                 }
             }
 
-            // Debug.LogError($"Set local pos {content.localPosition}->{localPosition}; move {localPosition - content.localPosition} || Frame:{Time.frameCount}");
+            // Log($"Set local pos {content.localPosition}->{localPosition}; move {localPosition - content.localPosition} || Frame:{Time.frameCount}");
             localPosition = ClampLocalPosInForHead(localPosition);
-            //localPosition = ClampLocalPosInForTail(localPosition);
+            // localPosition = ClampLocalPosInForTail(localPosition);
             content.localPosition = localPosition;
-            // InternalAdjustment();
+            InternalAdjustment();
             ForceRebuildAndStopMove();
         }
 
@@ -468,89 +468,5 @@ namespace RecycleScrollView
             _scrollRect.CallUpdateBoundsAndPrevData();
         }
 
-#if UNITY_EDITOR
-
-        [SerializeField]
-        private bool _alwaysDrawGizmos;
-
-        private void OnDrawGizmos()
-        {
-            if (_alwaysDrawGizmos)
-            {
-                GizmoDrawDefaultNavigationPosition();
-            }
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            if (!_alwaysDrawGizmos)
-            {
-                GizmoDrawDefaultNavigationPosition();
-            }
-        }
-
-        private void GizmoDrawDefaultNavigationPosition()
-        {
-            if (null == _scrollRect || null == _scrollRect.viewport)
-            {
-                return;
-            }
-
-            Vector2 refElementSize = new Vector2(100, 100);
-            Color prevColor = Gizmos.color;
-            Gizmos.color = Color.green;
-            RectTransform viewport = _scrollRect.viewport;
-            if (IsVertical)
-            {
-                // Draw ref line
-                Vector2 viewPortLocalLeft = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, new Vector2(-0.1f, _defaultNavigationParams.normalizedPositionInViewPort));
-                Vector2 viewPortLocalRight = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, new Vector2(1.1f, _defaultNavigationParams.normalizedPositionInViewPort));
-                Vector3 viewPortLocalLeftWorld = viewport.TransformPoint(viewPortLocalLeft);
-                Vector3 viewPortLocalRightWorld = viewport.TransformPoint(viewPortLocalRight);
-                Gizmos.DrawLine(viewPortLocalLeftWorld, viewPortLocalRightWorld);
-                // Draw ref element position
-                Vector2 elementLocalPos = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, new Vector2(0.5f, _defaultNavigationParams.normalizedPositionInViewPort));
-                elementLocalPos.x -= refElementSize.x * 0.5f;
-                elementLocalPos.y += refElementSize.y * (_defaultNavigationParams.normalizedElementPositionAdjustment - 1f);
-                GizmoDrawRect(elementLocalPos, refElementSize, viewport.localToWorldMatrix, Color.yellow);
-            }
-            else if (IsHorizontal)
-            {
-                // Draw ref line
-                Vector2 viewPortLocalTop = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, new Vector2(_defaultNavigationParams.normalizedPositionInViewPort, 1.1f));
-                Vector2 viewPortLocalBottom = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, new Vector2(_defaultNavigationParams.normalizedPositionInViewPort, -0.1f));
-                Vector3 viewPortLocalTopWorld = viewport.TransformPoint(viewPortLocalTop);
-                Vector3 viewPortLocalBottomWorld = viewport.TransformPoint(viewPortLocalBottom);
-                Gizmos.DrawLine(viewPortLocalBottomWorld, viewPortLocalTopWorld);
-                // Draw ref element position
-                Vector2 elementLocalPos = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, new Vector2(_defaultNavigationParams.normalizedPositionInViewPort, 0.5f));
-                elementLocalPos.y -= 0.5f * refElementSize.y;
-                elementLocalPos.x -= refElementSize.x * _defaultNavigationParams.normalizedElementPositionAdjustment;
-                GizmoDrawRect(elementLocalPos, refElementSize, viewport.localToWorldMatrix, Color.yellow);
-            }
-            Gizmos.color = prevColor;
-        }
-
-        private void GizmoDrawRect(Vector2 localBottomLeftPosition, Vector2 size, Matrix4x4 localToWorldMatrix, Color color)
-        {
-            Vector2 bottomLeft = new Vector3(localBottomLeftPosition.x, localBottomLeftPosition.y);
-            Vector2 bottomRight = new Vector3(localBottomLeftPosition.x + size.x, localBottomLeftPosition.y);
-            Vector2 topRight = new Vector3(localBottomLeftPosition.x + size.x, localBottomLeftPosition.y + size.y);
-            Vector2 topLeft = new Vector3(localBottomLeftPosition.x, localBottomLeftPosition.y + size.y);
-            bottomLeft = localToWorldMatrix.MultiplyPoint(bottomLeft);
-            bottomRight = localToWorldMatrix.MultiplyPoint(bottomRight);
-            topLeft = localToWorldMatrix.MultiplyPoint(topLeft);
-            topRight = localToWorldMatrix.MultiplyPoint(topRight);
-
-            Color prevColor = Gizmos.color;
-            Gizmos.color = color;
-            Gizmos.DrawLine(bottomLeft, bottomRight);
-            Gizmos.DrawLine(bottomRight, topRight);
-            Gizmos.DrawLine(topRight, topLeft);
-            Gizmos.DrawLine(topLeft, bottomLeft);
-            Gizmos.color = prevColor;
-        }
-
-#endif
     }
 }
