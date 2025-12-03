@@ -24,7 +24,7 @@ namespace RecycleScrollView
             // Set pre cache element
             int indexForPreCache = (0 < elementIndex) ? elementIndex - 1 : 0;
             SetPreCacheElement(indexForPreCache, ref m_preCacheHeadElement);
-            // Debug.LogError($"Add on top index {elementIndex} Time {Time.time}");
+            // Log($"Add on top index {elementIndex} Time {Time.time}");
         }
 
         private void AddElementToTail(int elementIndex)
@@ -38,7 +38,7 @@ namespace RecycleScrollView
             int dataCount = m_dataSource.DataElementCount;
             int indexForPreCache = (dataCount - 1 > elementIndex) ? elementIndex + 1 : elementIndex;
             SetPreCacheElement(indexForPreCache, ref m_preCacheTailElement);
-            // Debug.LogError($"Add on bottom index {elementIndex} Time {Time.time}");
+            // Log($"Add on bottom index {elementIndex} Time {Time.time}");
         }
 
         private void RemoveElementFromHead()

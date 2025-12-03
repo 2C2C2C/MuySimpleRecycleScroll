@@ -24,6 +24,7 @@ namespace RecycleScrollView
         // HACK
         [SerializeField]
         private RectTransform _preCacheContainer;
+
         private RecycleSingleDirectionScrollElement m_preCacheHeadElement;
         private RecycleSingleDirectionScrollElement m_preCacheTailElement;
 
@@ -46,6 +47,15 @@ namespace RecycleScrollView
 
         public void ForceRebuildContentLayout()
         {
+            float size = CalculateCurrentContentTotalPreferredSize();
+            if (IsHorizontal)
+            {
+                _scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+            }
+            else if (IsVertical)
+            {
+                _scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size);
+            }
             LayoutRebuilder.ForceRebuildLayoutImmediate(_scrollRect.content);
         }
 
@@ -72,7 +82,7 @@ namespace RecycleScrollView
         {
             if (HasDataSource)
             {
-                Debug.LogError($"[RecycleSingleDirectionScroll] Has already register a datasource");
+                LogError($"Already register a datasource");
             }
             else
             {
@@ -176,7 +186,7 @@ namespace RecycleScrollView
                 }
                 else
                 {
-                    Debug.LogError($"[RecycleScrollView] Vertical scroll need a VerticalLayoutGroup on content");
+                    LogError($"Vertical scroll need a VerticalLayoutGroup on content");
                 }
             }
             else if (IsHorizontal)
@@ -199,7 +209,7 @@ namespace RecycleScrollView
                 }
                 else
                 {
-                    Debug.LogError($"[RecycleScrollView] Horizontal scroll need a HorizontalLayoutGroup on content");
+                    LogError($"Horizontal scroll need a HorizontalLayoutGroup on content");
                 }
             }
         }
@@ -231,6 +241,7 @@ namespace RecycleScrollView
             bool hasAdjustedElements = AdjustElementsIfNeed();
             if (hasAdjustedElements)
             {
+                Log($"InternalAdjustment once");
                 // HACK Becuz I change the anchored position of drag content, so I need to adjust the prev value here. 
                 Vector2 newStartPos = content.anchoredPosition - anchorPositionDelta;
                 _scrollRect.ContentStartPos = newStartPos;
@@ -272,7 +283,7 @@ namespace RecycleScrollView
             RectTransform requestedElement = m_dataSource.RequestElement(content, ElementIndexDataIndex2WayConvert(elementIndex));
             if (!requestedElement.TryGetComponent<RecycleSingleDirectionScrollElement>(out newElement))
             {
-                Debug.LogError($"[RecycleScrollView] receive wrong element");
+                LogError($"Receive wrong element");
             }
             newElement.CalculatePreferredSize();
 
@@ -297,7 +308,6 @@ namespace RecycleScrollView
 
         private void OnScrollPositionChanged(Vector2 noramlizedPosition)
         {
-            // Debug.LogError("OnScrollPositionChanged");
             InternalAdjustment();
             m_hasPositionChangeCurrentFrame = true;
         }
@@ -315,22 +325,19 @@ namespace RecycleScrollView
             }
             if (m_hasPositionChangeCurrentFrame || m_hasAdjustElementsCurrentFrame)
             {
-                // UpdateScrollBar if needed
+                // HACK The layout has not fully refreshed at the 1st frame :(
+                if (0 == m_hasSetScrollBarValueThisFrame)
+                {
+                    UpdateScrollProgress();
+                }
+                else
+                {
+                    --m_hasSetScrollBarValueThisFrame;
+                    Log($"Skip scroll progress sync once");
+                }
             }
             m_hasAdjustElementsCurrentFrame = false;
             m_hasPositionChangeCurrentFrame = false;
-
-            // HACK The layout has not fully refreshed at the 1st frame :(
-            if (0 == m_hasSetScrollBarValueThisFrame)
-            {
-                UpdateScrollProgress();
-            }
-            else
-            {
-                --m_hasSetScrollBarValueThisFrame;
-                // Debug.LogError($"skip once; Frame {Time.frameCount}");
-            }
-            // Debug.LogError($"Check content localpos {_scrollRect.content.localPosition} || Frame:{Time.frameCount}");
         }
 
         protected override void OnEnable()
@@ -362,28 +369,6 @@ namespace RecycleScrollView
                 _scrollRect.AfterLateUpdate -= m_onLateUpdated;
             }
         }
-
-#if UNITY_EDITOR
-
-        private void ChangeObjectName_EditorOnly(MonoBehaviour behaviour, int elementIndex)
-        {
-            behaviour.name = $"Element {elementIndex}; DataIndex {ElementIndexDataIndex2WayConvert(elementIndex)}";
-        }
-
-        protected override void Reset()
-        {
-            if (TryGetComponent<UnityScrollRectExtended>(out _scrollRect))
-            {
-                _scrollRect.content.TryGetComponent<HorizontalOrVerticalLayoutGroup>(out _contentLayoutGroup);
-            }
-        }
-
-        protected override void OnValidate()
-        {
-            ApplyLayoutSetting();
-        }
-
-#endif
 
     }
 }

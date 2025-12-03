@@ -44,7 +44,7 @@ namespace RecycleScrollView
                     totalSize += element.ElementPreferredSize.x;
                 }
 
-                if (i > 0 && i < length - 1)
+                if (i < length - 1)
                 {
                     totalSize += _scrollParam.spacing;
                 }
@@ -193,9 +193,9 @@ namespace RecycleScrollView
         }
 
         // Only use this for edge elements
-        private Vector3 ClampLocalPosInForHead(Vector3 position)
+        private Vector3 ClampLocalPosForHead(Vector3 localPositionInViewport)
         {
-            Vector3 result = position;
+            Vector3 result = localPositionInViewport;
             if (-1 == CalculateAvailabeNextHeadElementIndex())
             {
                 RectTransform viewport = _scrollRect.viewport;
@@ -223,15 +223,13 @@ namespace RecycleScrollView
             return result;
         }
 
-        private Vector3 ClampLocalPosInForTail(Vector3 position)
+        private Vector3 ClampLocalPosForTail(Vector3 localPositionInViewport)
         {
-            Vector3 result = position;
+            Vector3 result = localPositionInViewport;
             if (-1 == CalculateAvailabeNextTailElementIndex())
             {
                 RectTransform viewport = _scrollRect.viewport;
-                RectTransform content = _scrollRect.content;
-                Vector2 edgeHead = CalculateNormalizedRectPosition(0f);
-                Vector2 contentHeadRectPositionInViewport = RectTransformEx.TransformLocalPositionToRectPosition(viewport, viewport.InverseTransformPoint(RectTransformEx.TransformNormalizedRectPositionToWorldPosition(content, edgeHead)));
+                Vector2 contentHeadRectPositionInViewport = RectTransformEx.TransformLocalPositionToRectPosition(viewport, result);
                 Vector2 edgeTail = CalculateNormalizedRectPosition(1f);
                 Vector2 viewportTailRectPosition = RectTransformEx.CalulateRectPosition(viewport, edgeTail);
 
@@ -259,19 +257,17 @@ namespace RecycleScrollView
                         break;
                     case ScrollDirection.Horizontal_LeftToRight:
                         delta = contentTailRectPosition.x - viewportTailRectPosition.x;
-                        // UnityEngine.Debug.LogError($"{contentTailRectPosition.x} - {viewportTailRectPosition.x} = {delta}");
-                        // if (0f > delta)
-                        // {
-                        //     result.x -= delta;
-                        // }
+                        if (0f > delta)
+                        {
+                            result.x -= delta;
+                        }
                         break;
                     case ScrollDirection.Horizontal_RightToLeft:
                         delta = contentTailRectPosition.x - viewportTailRectPosition.x;
-                        // UnityEngine.Debug.LogError($"{contentTailRectPosition.x} - {viewportTailRectPosition.x} = {delta}");
-                        // if (0f > delta)
-                        // {
-                        //     result.x -= delta;
-                        // }
+                        if (0f < delta)
+                        {
+                            result.x -= delta;
+                        }
                         break;
                     default:
                         break;
@@ -279,16 +275,6 @@ namespace RecycleScrollView
             }
             return result;
         }
-
-        // private void PrintEdge()
-        // {
-        //     RectTransform viewport = _scrollRect.viewport;
-        //     Vector2 edgeHead = CalculateNormalizedRectPosition(0f);
-        //     Vector2 edgeTail = CalculateNormalizedRectPosition(1f);
-        //     Vector3 edgeHeadLocalPos = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, edgeHead);
-        //     Vector3 edgeTailLocalPos = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, edgeTail);
-        //     Debug.LogError($"Check edge local pos; Head {edgeHeadLocalPos}; Tail {edgeTailLocalPos}");
-        // }
 
     }
 }
