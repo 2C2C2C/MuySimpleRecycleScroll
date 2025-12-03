@@ -71,6 +71,7 @@ namespace RecycleScrollView
         private IGridScrollDataSource m_dataSource = null;
         private List<RecycleGridScrollElement> m_gridElements;
         private UnityAction<Vector2> m_onScrollRectValueChanged;
+        private Action<int> m_onDataElementCountChanged;
 
         public int ViewItemCount => m_viewElementCount;
         public int ViewItemCountInRow => m_viewElementCountInRow;
@@ -96,6 +97,11 @@ namespace RecycleScrollView
                 }
                 m_dataSource = source;
                 RefreshLayoutChanges();
+                if (null == m_onDataElementCountChanged)
+                {
+                    // m_onDataElementCountChanged = new Action<int>();
+                }
+                m_dataSource.OnDataElementCountChanged += m_onDataElementCountChanged;
             }
         }
 
@@ -110,6 +116,7 @@ namespace RecycleScrollView
                     m_dataSource.RemoveElement(gridRectTransform);
                 }
                 m_gridElements.Clear();
+                m_dataSource.OnDataElementCountChanged -= m_onDataElementCountChanged;
                 m_dataSource = null;
             }
         }

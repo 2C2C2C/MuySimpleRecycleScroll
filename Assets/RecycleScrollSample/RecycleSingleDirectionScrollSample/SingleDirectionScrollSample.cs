@@ -25,8 +25,10 @@ namespace RecycleScrollView.Sample
         [SerializeField]
         private int _addOrRemoveIndex = -1;
 
+        private int m_currentDataCount = 0;
+
         private List<float> m_elementSizeList = new List<float>();
-        public event Action<int> OnDataElementCountChanged;
+        public event Action<int, int> OnDataElementCountChanged;
 
         public int DataElementCount => null == m_elementSizeList ? 0 : m_elementSizeList.Count;
 
@@ -93,6 +95,7 @@ namespace RecycleScrollView.Sample
             {
                 m_elementSizeList.Add(UnityRandom.Range(_sizeMin, _sizeMax));
             }
+            m_currentDataCount = _startDataCount;
             _scrollController.Init(this);
         }
 
@@ -105,6 +108,7 @@ namespace RecycleScrollView.Sample
         [ContextMenu(nameof(AddTest))]
         private void AddTest()
         {
+            int prevCount = DataElementCount;
             int addIndex = _addOrRemoveIndex;
             if (-1 != _addOrRemoveIndex && _addOrRemoveIndex <= DataElementCount - 1)
             {
@@ -117,13 +121,15 @@ namespace RecycleScrollView.Sample
                 addIndex = DataElementCount;
                 m_elementSizeList.Add(UnityRandom.Range(_sizeMin, _sizeMax));
             }
-            OnDataElementCountChanged?.Invoke(DataElementCount);
+            m_currentDataCount = m_elementSizeList.Count;
             _scrollController.InsertElement(addIndex);
+            OnDataElementCountChanged?.Invoke(prevCount, DataElementCount);
         }
 
         [ContextMenu(nameof(RemoveTest))]
         private void RemoveTest()
         {
+            int prevCount = DataElementCount;
             int removeIndex = _addOrRemoveIndex;
             if (-1 != _addOrRemoveIndex && _addOrRemoveIndex <= DataElementCount - 1)
             {
@@ -136,15 +142,17 @@ namespace RecycleScrollView.Sample
                 removeIndex = DataElementCount - 1;
                 m_elementSizeList.RemoveAt(removeIndex);
             }
-            OnDataElementCountChanged?.Invoke(DataElementCount);
+            m_currentDataCount = m_elementSizeList.Count;
+            OnDataElementCountChanged?.Invoke(prevCount, DataElementCount);
             _scrollController.RemoveElement(removeIndex);
         }
 
-        [ContextMenu(nameof(TempTest))]
-        private void TempTest()
+        [ContextMenu(nameof(RemoveRangeTest))]
+        private void RemoveRangeTest()
         {
-            _scrollController.JumpToElementInstant(0, 0f, 0f);
+            int prevCount = DataElementCount;
+            m_elementSizeList.RemoveRange(0, 6);
+            OnDataElementCountChanged?.Invoke(prevCount, DataElementCount);
         }
-
     }
 }

@@ -43,26 +43,7 @@ namespace RecycleScrollView
         public IReadOnlyList<RecycleSingleDirectionScrollElement> CurrentUsingElements => m_currentUsingElements;
         private UnityAction<Vector2> m_onScrollPositionChanged;
         private Action m_onLateUpdated;
-        private Action<int> m_onDataElementCountChanged;
-
-        public void ForceRebuildContentLayout()
-        {
-            float size = CalculateCurrentContentTotalPreferredSize();
-            if (IsHorizontal)
-            {
-                _scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-            }
-            else if (IsVertical)
-            {
-                _scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size);
-            }
-            LayoutRebuilder.ForceRebuildLayoutImmediate(_scrollRect.content);
-        }
-
-        public void MarkSelfForLayoutRebuild()
-        {
-            LayoutRebuilder.MarkLayoutForRebuild(_scrollRect.content);
-        }
+        private Action<int, int> m_onDataElementCountChanged;
 
         public void UnInit()
         {
@@ -89,7 +70,7 @@ namespace RecycleScrollView
                 m_dataSource = dataSource;
                 if (null == m_onDataElementCountChanged)
                 {
-                    m_onDataElementCountChanged = new Action<int>(OnDataElementCountChanged);
+                    m_onDataElementCountChanged = new Action<int, int>(OnDataElementCountChanged);
                 }
                 m_dataSource.OnDataElementCountChanged += m_onDataElementCountChanged;
                 ApplyLayoutSetting();
@@ -108,7 +89,7 @@ namespace RecycleScrollView
                 int tailElementIndex = CalculateAvailabeNextTailElementIndex();
                 SetPreCacheElement(tailElementIndex, ref m_preCacheTailElement);
                 _scrollRect.CallUpdateBoundsAndPrevData();
-                OnDataElementCountChanged(m_dataSource.DataElementCount);
+                OnDataElementCountChanged(0, m_dataSource.DataElementCount);
             }
         }
 
@@ -129,28 +110,6 @@ namespace RecycleScrollView
             {
                 m_dataSource.ReturnElement(m_preCacheTailElement.ElementTransform);
                 m_preCacheTailElement = null;
-            }
-        }
-
-        public void NotifyElementSizeChange(int dataIndex, bool forceRebuild)
-        {
-            int indexLowerBound = GetCurrentShowingElementIndexLowerBound();
-            int indexUpperBound = GetCurrentShowingElementIndexUpperBound();
-            if (indexLowerBound <= dataIndex && dataIndex <= indexUpperBound)
-            {
-                for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
-                {
-                    RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
-                    if (dataIndex == element.DataIndex)
-                    {
-                        element.CalculatePreferredSize();
-                        if (forceRebuild)
-                        {
-                            MarkSelfForLayoutRebuild();
-                        }
-                        break;
-                    }
-                }
             }
         }
 
@@ -306,15 +265,17 @@ namespace RecycleScrollView
             }
         }
 
-        private void OnScrollPositionChanged(Vector2 noramlizedPosition)
+        private void OnScrollPositionChanged(Vector2 _)
         {
             InternalAdjustment();
             m_hasPositionChangeCurrentFrame = true;
         }
 
-        private void OnDataElementCountChanged(int count)
+        // TODO Remove this, count change should be handle as data add/remove.
+        private void OnDataElementCountChanged(int prevCount, int nextCount)
         {
             AdjustScrollBarSize();
+            UpdateScrollProgress();
         }
 
         private void OnLateUpdated()

@@ -455,10 +455,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c41cf0e1e7a3d7348bf0dbe7063e9448, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _alwaysDrawGizmos: 0
+  _enableLog: 0
   _defaultNavigationParams:
     normalizedPositionInViewPort: 0.3
     normalizedElementPositionAdjustment: 0.6
-  _alwaysDrawGizmos: 0
   _scrollBar: {fileID: 1376699813}
   m_scrollProgress: 0
   m_virtualNormalizedScrollBarValue: 0
@@ -1734,7 +1735,7 @@ MonoBehaviour:
   _sizeMax: 256
   _startDataCount: 269
   _jumpToTestIndex: 107
-  _addOrRemoveIndex: -1
+  _addOrRemoveIndex: 0
 --- !u!114 &2111627557
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1747,10 +1748,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c41cf0e1e7a3d7348bf0dbe7063e9448, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _alwaysDrawGizmos: 0
+  _enableLog: 0
   _defaultNavigationParams:
     normalizedPositionInViewPort: 0.3
     normalizedElementPositionAdjustment: 0
-  _alwaysDrawGizmos: 0
   _scrollBar: {fileID: 2034402436}
   m_scrollProgress: 0
   m_virtualNormalizedScrollBarValue: 0

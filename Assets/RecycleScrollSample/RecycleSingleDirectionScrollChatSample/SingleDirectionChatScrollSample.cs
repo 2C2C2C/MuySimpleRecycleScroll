@@ -52,10 +52,14 @@ namespace RecycleScrollView.Sample
 
         [SerializeField]
         private int _jumpToTestIndex = 10;
+        [SerializeField]
+        private int _addDataIndex = -1;
+        [SerializeField]
+        private int _removeDataIndex = -1;
 
         private List<ChatData> m_chatList;
 
-        public event Action<int> OnDataElementCountChanged;
+        public event Action<int, int> OnDataElementCountChanged;
 
         public int DataElementCount => _dataCount;
 
@@ -77,6 +81,19 @@ namespace RecycleScrollView.Sample
             GameObject.Destroy(element.gameObject);
         }
 
+        public void ChangeElementIndex(RectTransform element, int prevIndex, int nextIndex)
+        {
+            int dataCount = DataElementCount;
+            if (element.TryGetComponent<ChatElementUI>(out ChatElementUI chatElementUI) &&
+                -1 < nextIndex &&
+                dataCount > nextIndex)
+            {
+                ChatData data = m_chatList[nextIndex];
+                chatElementUI.SetText(data.mainContent, data.quoteContent);
+                element.ForceUpdateRectTransforms();
+            }
+        }
+
         private void Awake()
         {
             m_chatList = new List<ChatData>();
@@ -91,70 +108,24 @@ namespace RecycleScrollView.Sample
             _scrollController.Init(this);
         }
 
-        [ContextMenu("AddTopTest")]
-        private void AddTopTest()
-        {
-            RectTransform scrollContent = _scrollrect.content;
-            RectTransform scrollViewport = _scrollrect.viewport;
-            RectTransform newElement = RectTransform.Instantiate(_elementPrefab, scrollContent);
-            Debug.LogError($"1 {_scrollrect.verticalNormalizedPosition}");
-            if (newElement.TryGetComponent<TextElementUI>(out TextElementUI chatTextElement))
-            {
-                float heightee = UnityRandom.Range(80, 560);
-                chatTextElement.SetHeight(heightee);
-                chatTextElement.SetText($"ee ");
-                newElement.SetAsFirstSibling();
-
-                LayoutRebuilder.ForceRebuildLayoutImmediate(scrollContent);
-                Vector2 size = newElement.rect.size;
-                float delta = heightee;
-                Vector2 contentSize = scrollContent.rect.size;
-                if (_scrollController.IsHorizontal)
-                {
-                    contentSize.x += delta;
-                    Debug.LogError($"2 {_scrollrect.verticalNormalizedPosition} {size}");
-                    contentSize = scrollContent.rect.size;
-                    // _content.anchoredPosition += Vector2.up * delta;
-                    _scrollrect.verticalNormalizedPosition -= delta / (contentSize.x - scrollViewport.rect.height);
-                }
-                else if (_scrollController.IsVertical)
-                {
-                    contentSize.y += delta;
-                    Debug.LogError($"2 {_scrollrect.verticalNormalizedPosition} {size}");
-                    contentSize = scrollContent.rect.size;
-                    // _content.anchoredPosition += Vector2.up * delta;
-                    _scrollrect.verticalNormalizedPosition -= delta / (contentSize.y - scrollViewport.rect.height);
-                }
-            }
-        }
-
-        [ContextMenu("RemoveTest")]
-        private void RemoveTest()
-        {
-            RectTransform scrollContent = _scrollrect.content;
-            RectTransform tempChild = scrollContent.GetChild(0) as RectTransform;
-            float heightDelta = tempChild.rect.height;
-            Destroy(tempChild.gameObject);
-            scrollContent.anchoredPosition -= Vector2.up * heightDelta;
-        }
-
         [ContextMenu(nameof(JumpToTest))]
         private void JumpToTest()
         {
             _scrollController.JumpToElementInstant(_jumpToTestIndex);
         }
 
-        public void ChangeElementIndex(RectTransform element, int prevIndex, int nextIndex)
+        [ContextMenu(nameof(AddDataTest))]
+        private void AddDataTest()
         {
-            int dataCount = DataElementCount;
-            if (element.TryGetComponent<ChatElementUI>(out ChatElementUI chatElementUI) &&
-                -1 < nextIndex &&
-                dataCount > nextIndex)
-            {
-                ChatData data = m_chatList[nextIndex];
-                chatElementUI.SetText(data.mainContent, data.quoteContent);
-                element.ForceUpdateRectTransforms();
-            }
+
         }
+
+        [ContextMenu(nameof(RemoveDataTest))]
+        private void RemoveDataTest()
+        {
+
+        }
+
     }
+
 }

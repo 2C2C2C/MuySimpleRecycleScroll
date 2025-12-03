@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RecycleScrollView.Sample
@@ -12,6 +13,8 @@ namespace RecycleScrollView.Sample
 
         private List<GuidElementData> m_dataList = new List<GuidElementData>();
         private Dictionary<RectTransform, GuidElementUI> m_viewElementMap = new Dictionary<RectTransform, GuidElementUI>();
+
+        public event Action<int> OnDataElementCountChanged;
 
         public int DataElementCount => m_dataList.Count;
 

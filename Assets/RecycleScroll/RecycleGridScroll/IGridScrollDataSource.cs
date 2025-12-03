@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace RecycleScrollView
@@ -17,5 +18,7 @@ namespace RecycleScrollView
         void InitElement(RectTransform element, int index);
         void UnInitElement(RectTransform element);
         void ChangeElementIndex(RectTransform element, int prevIndex, int nextIndex);
+
+        event Action<int> OnDataElementCountChanged;
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.UI.Extend;
 using ScrollDirection = RecycleScrollView.SingleDirectionScrollParam.ScrollDirection;
 
@@ -6,6 +7,50 @@ namespace RecycleScrollView
 {
     public partial class RecycleSingleDirectionScroll
     {
+        private void ForceRebuildContentLayout()
+        {
+            float size = CalculateCurrentContentTotalPreferredSize();
+            if (IsHorizontal)
+            {
+                _scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+            }
+            else if (IsVertical)
+            {
+                _scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size);
+            }
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_scrollRect.content);
+        }
+
+        private void MarkSelfForLayoutRebuild()
+        {
+            LayoutRebuilder.MarkLayoutForRebuild(_scrollRect.content);
+        }
+
+        /// <param name="normalizedValue"> Head(0) ~ Tail(1) </param>
+        /// <returns></returns>
+        private Vector2 CalculateNormalizedRectPosition(float normalizedValue)
+        {
+            Vector2 result = Vector2.zero;
+            switch (_scrollParam.scrollDirection)
+            {
+                case ScrollDirection.Horizontal_LeftToRight:
+                    result = new Vector2(Mathf.Lerp(0f, 1f, normalizedValue), 0f);
+                    break;
+                case ScrollDirection.Horizontal_RightToLeft:
+                    result = new Vector2(Mathf.Lerp(1f, 0f, normalizedValue), 0f);
+                    break;
+                case ScrollDirection.Vertical_UpToDown:
+                    result = new Vector2(0f, Mathf.Lerp(1f, 0f, normalizedValue));
+                    break;
+                case ScrollDirection.Vertical_DownToUp:
+                    result = new Vector2(0f, Mathf.Lerp(0f, 1f, normalizedValue));
+                    break;
+                default:
+                    break;
+            }
+            return result;
+        }
+
         /// <param name="elementIndex"> Index from scroll progress </param>
         /// <param name="element"></param>
         /// <returns></returns>
@@ -111,13 +156,19 @@ namespace RecycleScrollView
         }
 
         // To solve reverse arrangement issues
+
         private int ElementIndexDataIndex2WayConvert(int index)
+        {
+            return ElementIndexDataIndex2WayConvert(index, m_dataSource.DataElementCount);
+        }
+
+        // To solve reverse arrangement issues
+        private int ElementIndexDataIndex2WayConvert(int index, int dataCount)
         {
             if (null == m_dataSource)
             {
                 return -1;
             }
-            int dataCount = m_dataSource.DataElementCount;
             int result = _scrollParam.reverseArrangement ?
                 dataCount - index - 1 :
                 index;
@@ -167,13 +218,13 @@ namespace RecycleScrollView
             return index + 1;
         }
 
-        public int GetCurrentShowingElementIndexLowerBound()
+        public int GetCurrentShowingElementIndexTailBound()
         {
             int elementCount = m_currentUsingElements.Count;
             return (0 < elementCount) ? m_currentUsingElements[elementCount - 1].ElementIndex : -1;
         }
 
-        public int GetCurrentShowingElementIndexUpperBound()
+        public int GetCurrentShowingElementIndexHeadBound()
         {
             int elementCount = m_currentUsingElements.Count;
             return (0 < elementCount) ? m_currentUsingElements[0].ElementIndex : -1;

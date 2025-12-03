@@ -12,6 +12,7 @@ namespace RecycleScrollView
         void ReturnElement(RectTransform element);
         void ChangeElementIndex(RectTransform element, int prevDataIndex, int nextDataIndex);
 
-        event Action<int> OnDataElementCountChanged;
+        /// <summary> Prev count, next count </summary>
+        event Action<int, int> OnDataElementCountChanged;
     }
 }

@@ -80,104 +80,65 @@ namespace RecycleScrollView
 
         public void InsertElement(int dataIndex)
         {
-            int insertElementIndex = ElementIndexDataIndex2WayConvert(dataIndex);
-            int indexUpperBound = GetCurrentShowingElementIndexUpperBound();
-            if (insertElementIndex > indexUpperBound)
+            int prevDataCount = m_dataSource.DataElementCount - 1;
+            int insertElementIndex = ElementIndexDataIndex2WayConvert(dataIndex, prevDataCount);
+            int indexTailBound = GetCurrentShowingElementIndexTailBound();
+            if (insertElementIndex > indexTailBound)
             {
                 return;
             }
 
-            bool hasAdded = false;
-            if (_scrollParam.reverseArrangement)
+            int indexHeadBound = GetCurrentShowingElementIndexHeadBound();
+            bool hasAdded = indexHeadBound > insertElementIndex;
+            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
             {
-                for (int i = m_currentUsingElements.Count - 1; i >= 0; i--)
+                RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
+                int elementIndex = element.ElementIndex;
+                if (elementIndex == insertElementIndex && !hasAdded)
                 {
-                    RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
-                    int elementIndex = element.ElementIndex;
-                    if (insertElementIndex == element.ElementIndex && !hasAdded)
-                    {
-                        RecycleSingleDirectionScrollElement newElement = InternalCreateElement(insertElementIndex);
-                        newElement.ElementTransform.SetSiblingIndex(element.ElementTransform.GetSiblingIndex() + 1);
-                        newElement.SetIndex(insertElementIndex, dataIndex);
-                        m_currentUsingElements.Insert(i, newElement);
-                        hasAdded = true;
-                    }
-                    else if (dataIndex < elementIndex && hasAdded)
-                    {
-                        InternalChangeElementIndex(element, ElementIndexDataIndex2WayConvert(elementIndex + 1), false);
-                    }
+                    RecycleSingleDirectionScrollElement newElement = InternalCreateElement(insertElementIndex);
+                    newElement.ElementTransform.SetSiblingIndex(element.ElementTransform.GetSiblingIndex());
+                    newElement.SetIndex(insertElementIndex, dataIndex);
+                    m_currentUsingElements.Insert(i, newElement);
+                    length++;
+                    hasAdded = true;
                 }
-            }
-            else
-            {
-                for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+                else if (insertElementIndex <= elementIndex && hasAdded)
                 {
-                    RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
-                    int elementIndex = element.ElementIndex;
-                    if (dataIndex == element.DataIndex && !hasAdded)
-                    {
-                        RecycleSingleDirectionScrollElement newElement = InternalCreateElement(insertElementIndex);
-                        newElement.ElementTransform.SetSiblingIndex(element.ElementTransform.GetSiblingIndex());
-                        newElement.SetIndex(insertElementIndex, dataIndex);
-                        m_currentUsingElements.Insert(i, newElement);
-                        length++;
-                        hasAdded = true;
-                    }
-                    else if (dataIndex <= elementIndex && hasAdded)
-                    {
-                        InternalChangeElementIndex(element, elementIndex + 1, false);
-                    }
+                    InternalChangeElementIndex(element, elementIndex + 1, false);
                 }
             }
         }
 
         public void RemoveElement(int dataIndex)
         {
-            int elementIndex = ElementIndexDataIndex2WayConvert(dataIndex);
-            int indexUpperBound = GetCurrentShowingElementIndexUpperBound();
-            if (elementIndex > indexUpperBound)
+            int prevDataCount = m_dataSource.DataElementCount - 1;
+            int removeElementIndex = ElementIndexDataIndex2WayConvert(dataIndex, prevDataCount);
+            int indexTailBound = GetCurrentShowingElementIndexTailBound();
+            if (removeElementIndex > indexTailBound)
             {
                 return;
             }
 
-            bool hasRemoved = false;
-            if (_scrollParam.reverseArrangement)
+            int indexHeadBound = GetCurrentShowingElementIndexHeadBound();
+            bool hasRemoved = indexHeadBound > removeElementIndex;
+            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
             {
-                for (int i = m_currentUsingElements.Count - 1; i >= 0; i--)
+                RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
+                if (element.ElementIndex == removeElementIndex && !hasRemoved)
                 {
-                    RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
-                    if (elementIndex == element.ElementIndex && !hasRemoved)
-                    {
-                        m_currentUsingElements.RemoveAt(i);
-                        InternalRemoveElement(element);
-                        hasRemoved = true;
-                        break;
-                    }
-                    else if (dataIndex < elementIndex && !hasRemoved)
-                    {
-                        InternalChangeElementIndex(element, ElementIndexDataIndex2WayConvert(elementIndex - 1), false);
-                    }
+                    m_currentUsingElements.RemoveAt(i);
+                    length--; i--;
+                    InternalRemoveElement(element);
+                    hasRemoved = true;
                 }
-            }
-            else
-            {
-                for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+                else if (dataIndex < removeElementIndex && hasRemoved)
                 {
-                    RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
-                    if (element.ElementIndex == elementIndex && !hasRemoved)
-                    {
-                        m_currentUsingElements.RemoveAt(i);
-                        length--; i--;
-                        InternalRemoveElement(element);
-                        hasRemoved = true;
-                    }
-                    else if (dataIndex < elementIndex && hasRemoved)
-                    {
-                        InternalChangeElementIndex(element, ElementIndexDataIndex2WayConvert(elementIndex - 1), false);
-                    }
+                    InternalChangeElementIndex(element, removeElementIndex - 1, false);
                 }
             }
 
+            // TODO IDK if I should also move the scroll content
             if (hasRemoved)
             {
                 ForceRebuildContentLayout();
@@ -467,31 +428,6 @@ namespace RecycleScrollView
                 // HACK Since I force the pivot of content, no need to adjust position at this case
             }
             return 0 < addCount;
-        }
-
-        /// <param name="normalizedValue"> Head(0) ~ Tail(1) </param>
-        /// <returns></returns>
-        private Vector2 CalculateNormalizedRectPosition(float normalizedValue)
-        {
-            Vector2 result = Vector2.zero;
-            switch (_scrollParam.scrollDirection)
-            {
-                case ScrollDirection.Horizontal_LeftToRight:
-                    result = new Vector2(Mathf.Lerp(0f, 1f, normalizedValue), 0f);
-                    break;
-                case ScrollDirection.Horizontal_RightToLeft:
-                    result = new Vector2(Mathf.Lerp(1f, 0f, normalizedValue), 0f);
-                    break;
-                case ScrollDirection.Vertical_UpToDown:
-                    result = new Vector2(0f, Mathf.Lerp(1f, 0f, normalizedValue));
-                    break;
-                case ScrollDirection.Vertical_DownToUp:
-                    result = new Vector2(0f, Mathf.Lerp(0f, 1f, normalizedValue));
-                    break;
-                default:
-                    break;
-            }
-            return result;
         }
 
         private void SetPreCacheElement(int elementIndex, ref RecycleSingleDirectionScrollElement element)
