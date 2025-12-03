@@ -343,25 +343,6 @@ namespace RecycleScrollView
             }
         }
 
-#if UNITY_EDITOR
-
-        private void ChangeObjectName_EditorOnly(MonoBehaviour behaviour, int dataIndex)
-        {
-            behaviour.name = $"Element {dataIndex}";
-        }
-
-        protected override void Reset()
-        {
-            if (TryGetComponent<UnityScrollRectExtended>(out _scrollRect))
-            {
-                _scrollRect.StopMovement();
-                return;
-            }
-            Debug.LogWarning("[RecycleScrollGrid] should be on the same GameObject with ScrollRect, please remove this component and add RecycleScrollGrid to ScrollRect GameObject", this.gameObject);
-        }
-
-#endif
-
         protected override void OnEnable()
         {
             if (Application.isPlaying && null == m_onScrollRectValueChanged)

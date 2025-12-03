@@ -7,7 +7,7 @@ namespace RecycleScrollView.Sample
     {
         [Range(4, 800)]
         [SerializeField]
-        private int _dataCount = 10;
+        private int _startDataCount = 10;
         [SerializeField]
         private GuidElementListUI _gridListUI = null;
         [SerializeField]
@@ -29,9 +29,9 @@ namespace RecycleScrollView.Sample
         [ContextMenu("setup data")]
         private void SetupData()
         {
-            m_dataArr = new GuidElementData[_dataCount];
-            m_dataNames = new string[_dataCount];
-            for (int i = 0; i < _dataCount; i++)
+            m_dataArr = new GuidElementData[_startDataCount];
+            m_dataNames = new string[_startDataCount];
+            for (int i = 0; i < _startDataCount; i++)
             {
                 m_dataArr[i] = new GuidElementData();
                 m_dataNames[i] = m_dataArr[i].ItemName;
