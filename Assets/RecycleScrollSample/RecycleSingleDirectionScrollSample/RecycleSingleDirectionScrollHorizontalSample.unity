@@ -915,10 +915,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c41cf0e1e7a3d7348bf0dbe7063e9448, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _alwaysDrawGizmos: 0
+  _enableLog: 0
   _defaultNavigationParams:
     normalizedPositionInViewPort: 0.4
     normalizedElementPositionAdjustment: 0
-  _alwaysDrawGizmos: 0
   _scrollBar: {fileID: 1155868893}
   m_scrollProgress: 0
   m_virtualNormalizedScrollBarValue: 0
@@ -1650,10 +1651,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c41cf0e1e7a3d7348bf0dbe7063e9448, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _alwaysDrawGizmos: 0
+  _enableLog: 1
   _defaultNavigationParams:
     normalizedPositionInViewPort: 0.7
     normalizedElementPositionAdjustment: 1
-  _alwaysDrawGizmos: 0
   _scrollBar: {fileID: 941857025}
   m_scrollProgress: 0
   m_virtualNormalizedScrollBarValue: 0

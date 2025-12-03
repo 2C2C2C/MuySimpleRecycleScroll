@@ -184,7 +184,7 @@ namespace RecycleScrollView
 
         private void InternalJumpToExistElement(int elementIndex, float normalizedScrollProgressBase, float normalizedScrollProgressOffset)
         {
-            // LogError($"InternalJumpToExistElement elementIndex_{elementIndex}; normalizedScrollProgressBase_{normalizedScrollProgressBase}; normalizedScrollProgressOffset_{normalizedScrollProgressOffset} || Frame:{Time.frameCount}");
+            Log($"InternalJumpToExistElement elementIndex_{elementIndex}; normalizedScrollProgressBase_{normalizedScrollProgressBase}; normalizedScrollProgressOffset_{normalizedScrollProgressOffset} || Frame:{Time.frameCount}");
             if (null == m_dataSource || elementIndex < 0 || elementIndex >= m_dataSource.DataElementCount)
             {
                 return;
@@ -197,7 +197,6 @@ namespace RecycleScrollView
                 return;
             }
 
-            float targetProgress = normalizedScrollProgressBase + normalizedScrollProgressOffset;
             float tempMove = 0f;
             float stepSize = 1f / (m_dataSource.DataElementCount - 1);
             if (currentBaseIndex == elementIndex)
@@ -334,21 +333,18 @@ namespace RecycleScrollView
             Vector3 localPosition = content.localPosition;
             localPosition += (Vector3)move;
 
-            // LogError($"Set local pos {content.localPosition}->{localPosition} ; move {move} || Frame:{Time.frameCount}");
-            localPosition = ClampLocalPosInForHead(localPosition);
-            //localPosition = ClampLocalPosInForTail(localPosition);
+            localPosition = ClampLocalPosForHead(localPosition);
+            localPosition = ClampLocalPosForTail(localPosition);
             content.localPosition = localPosition;
-            // PrintEdge();
-            // LogError($"Set content local pos {_scrollRect.content.localPosition} || Frame:{Time.frameCount}");
+            ForceRebuildContentLayout();
         }
 
         private void InternalJumpToNonExistElement(int elementIndex, float normalizedScrollProgressBase, float normalizedScrollProgressOffset)
         {
-            // LogError($"InternalJumpToNonExistElement elementIndex_{elementIndex}; normalizedScrollProgressBase_{normalizedScrollProgressBase}; normalizedScrollProgressOffset_{normalizedScrollProgressOffset} || Frame:{Time.frameCount}");
+            // Log($"InternalJumpToNonExistElement elementIndex_{elementIndex}; normalizedScrollProgressBase_{normalizedScrollProgressBase}; normalizedScrollProgressOffset_{normalizedScrollProgressOffset} || Frame:{Time.frameCount}");
             RectTransform content = _scrollRect.content;
             RectTransform viewport = _scrollRect.viewport;
 
-            int dataCount = m_dataSource.DataElementCount;
             RemoveCurrentElements();
             _scrollRect.StopMovement();
             AddElementToHead(elementIndex);
@@ -393,17 +389,17 @@ namespace RecycleScrollView
             // TODO Add progress offset
             if (!Mathf.Approximately(0f, normalizedScrollProgressOffset))
             {
-                Vector3 offset = Vector3.zero;
+                Vector3 offsetV3 = Vector3.zero;
                 float stepSize = 1f / (m_dataSource.DataElementCount - 1);
-                float offsetRaw = normalizedScrollProgressOffset / stepSize;
+                float offset = normalizedScrollProgressOffset / stepSize;
                 Vector2 contentMoveDir = -GetScrollDirectionVector(_scrollParam.scrollDirection); // HACK the actual content move direction is inverse of scroll directions
-                if ((0f < offsetRaw && TryCalculateGapBetweenElement(elementIndex, elementIndex + 1, out float gapSize)) ||
-                    (0f > offsetRaw && TryCalculateGapBetweenElement(elementIndex - 1, elementIndex, out gapSize)))
+                if ((0f < offset && TryCalculateGapBetweenElement(elementIndex, elementIndex + 1, out float gapSize)) ||
+                    (0f > offset && TryCalculateGapBetweenElement(elementIndex - 1, elementIndex, out gapSize)))
                 {
-                    offset = gapSize * offsetRaw * contentMoveDir;
+                    offsetV3 = gapSize * offset * contentMoveDir;
                 }
-                headCheckRectPosition += (Vector2)offset;
-                localPosition += offset;
+                headCheckRectPosition += (Vector2)offsetV3;
+                localPosition += offsetV3;
                 // PrintEdge();
             }
 
@@ -453,9 +449,8 @@ namespace RecycleScrollView
                 }
             }
 
-            // Log($"Set local pos {content.localPosition}->{localPosition}; move {localPosition - content.localPosition} || Frame:{Time.frameCount}");
-            localPosition = ClampLocalPosInForHead(localPosition);
-            // localPosition = ClampLocalPosInForTail(localPosition);
+            localPosition = ClampLocalPosForHead(localPosition);
+            localPosition = ClampLocalPosForTail(localPosition);
             content.localPosition = localPosition;
             InternalAdjustment();
             ForceRebuildAndStopMove();

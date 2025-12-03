@@ -6,10 +6,21 @@ But mine should be much simpler.
 
 ## RecycleGridScroll
 
-![Sample](https://github.com/2C2C2C/MuyScrollRect/blob/master/TempSrc/RecycleGridScroll01.gif)
+![GridSample](https://github.com/2C2C2C/MuyScrollRect/blob/master/TempSrc/RecycleGridScroll01.gif)
 
 ## RecycleOneDirectionScroll
 
-![Sample](https://github.com/2C2C2C/MuyScrollRect/blob/master/TempSrc/RecycleOneDirectionScroll01.gif)
+![HorizontalSample](https://github.com/2C2C2C/MuyScrollRect/blob/master/TempSrc/RecycleOneDirectionScrollHorizontal01.gif)
 
-![Sample](https://github.com/2C2C2C/MuyScrollRect/blob/master/TempSrc/RecycleOneDirectionScroll02.gif)
+![VerticalSample](https://github.com/2C2C2C/MuyScrollRect/blob/master/TempSrc/RecycleOneDirectionScrollVertical01.gif)
+
+![ChatSample](https://github.com/2C2C2C/MuyScrollRect/blob/master/TempSrc/RecycleOneDirectionScrollChat01.gif)
+
+
+# Roadmap
+
+- [ ] Bug fixing
+- [ ] Complete samples
+- [ ] Radial scroll
+- [ ] Another scroll bar behaviour for SingleDirectionScroll as UnityScrollRect
+- [ ] A simple virtual scroller for all scrolls

@@ -47,6 +47,15 @@ namespace RecycleScrollView
 
         public void ForceRebuildContentLayout()
         {
+            float size = CalculateCurrentContentTotalPreferredSize();
+            if (IsHorizontal)
+            {
+                _scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+            }
+            else if (IsVertical)
+            {
+                _scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size);
+            }
             LayoutRebuilder.ForceRebuildLayoutImmediate(_scrollRect.content);
         }
 
