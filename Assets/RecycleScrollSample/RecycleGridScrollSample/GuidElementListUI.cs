@@ -7,7 +7,7 @@ namespace RecycleScrollView.Sample
     public class GuidElementListUI : MonoBehaviour, IGridScrollDataSource
     {
         [SerializeField]
-        private RecycleGridScroll _scrollRectController;
+        private RecycleGridScroll _gridScroll;
         [SerializeField]
         private RectTransform _elementPrefab;
 
@@ -22,8 +22,8 @@ namespace RecycleScrollView.Sample
         {
             m_dataList.Clear();
             m_dataList.AddRange(dataList);
-            _scrollRectController.Uninit();
-            _scrollRectController.Init(this);
+            _gridScroll.Uninit();
+            _gridScroll.Init(this);
         }
 
         public RectTransform AddElement(RectTransform parent)
@@ -66,6 +66,22 @@ namespace RecycleScrollView.Sample
             {
                 viewElement.Setup(m_dataList[nextIndex]);
             }
+        }
+
+
+        [ContextMenu(nameof(AddDataTest))]
+        private void AddDataTest()
+        {
+            GuidElementData addData = new GuidElementData();
+            m_dataList.Insert(5, addData);
+            _gridScroll.InsertElement(5);
+        }
+
+        [ContextMenu(nameof(RemoveRangeTest))]
+        private void RemoveRangeTest()
+        {
+            m_dataList.RemoveRange(5, 10);
+            _gridScroll.RemoveRange(5, 10);
         }
 
         private void Awake()

@@ -1,5 +1,4 @@
 ﻿#if UNITY_EDITOR
-using UnityEngine.EventSystems;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
@@ -7,7 +6,7 @@ using UnityEngine.UI.Extend;
 
 namespace RecycleScrollView
 {
-    public partial class RecycleGridScroll : UIBehaviour
+    public partial class RecycleGridScroll
     {
         private const int INDEX_LABEL_FONT_SIZE = 16;
 
@@ -257,7 +256,7 @@ namespace RecycleScrollView
             behaviour.name = $"Element {dataIndex}";
         }
 
-        protected override void Reset()
+        private void Reset()
         {
             if (TryGetComponent<UnityScrollRectExtended>(out _scrollRect))
             {

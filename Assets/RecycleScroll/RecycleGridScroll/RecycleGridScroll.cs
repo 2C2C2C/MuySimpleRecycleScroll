@@ -2,17 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace RecycleScrollView
 {
     [ExecuteAlways]
     [RequireComponent(typeof(UnityScrollRectExtended))]
-    public partial class RecycleGridScroll : UIBehaviour
+    public partial class RecycleGridScroll : MonoBehaviour, IRecycleScroll
     {
-        private const int INVALID_INDEX = -1;
-
         private static Comparison<RecycleGridScrollElement> s_gridElementCompare;
 
         public static Comparison<RecycleGridScrollElement> GridElementCompare
@@ -69,9 +66,12 @@ namespace RecycleScrollView
         private int m_viewElementCountInColumn = 0;
 
         private IGridScrollDataSource m_dataSource = null;
-        private List<RecycleGridScrollElement> m_gridElements;
+        [SerializeField]
+        private List<RecycleGridScrollElement> m_gridElements; // TODO should be Nonserialized but show in inspector
         private UnityAction<Vector2> m_onScrollRectValueChanged;
-        private Action<int> m_onDataElementCountChanged;
+
+        private bool m_needUpdateGridsThisFrame = false;
+        private bool m_needUpdateContentSizeThisFrame = false;
 
         public int ViewItemCount => m_viewElementCount;
         public int ViewItemCountInRow => m_viewElementCountInRow;
@@ -81,6 +81,193 @@ namespace RecycleScrollView
         public SimpleGridLayoutData GridLayoutData => _gridLayoutData;
         public int SimulatedDataCount => HasDataSource ? m_dataSource.DataElementCount : m_simulatedDataCount;
         public bool HasDataSource => null != m_dataSource;
+
+        public void InsertElement(int dataIndex)
+        {
+            if (TryGetTailIndexboundOfUsingElements(out int tailIndex) && TryGetHeadIndexOfUsingElements(out _))
+            {
+                if (dataIndex > tailIndex)
+                {
+                    return;
+                }
+
+                for (int i = 0, length = m_gridElements.Count; i < length; i++)
+                {
+                    RecycleGridScrollElement gridScrollElement = m_gridElements[i];
+                    int elementIndex = gridScrollElement.ElementIndex;
+                    if (INVALID_INDEX == elementIndex || dataIndex > elementIndex)
+                    {
+                        continue;
+                    }
+                    m_dataSource.UnInitElement(gridScrollElement.ElementTransform);
+                    m_dataSource.InitElement(gridScrollElement.ElementTransform, elementIndex);
+                }
+                // HACK Only update exist grids, new add grids will show after grid update
+                m_needUpdateGridsThisFrame = true;
+                m_needUpdateContentSizeThisFrame = true;
+            }
+        }
+
+        public void InsertRange(int dataIndex, int count)
+        {
+            int prevDataCount = m_dataSource.DataElementCount - 1;
+            // Only unbind data to remove, then rebind data for element after the index
+            for (int i = 0, length = m_gridElements.Count; i < length; i++)
+            {
+                RecycleGridScrollElement element = m_gridElements[i];
+                int elementIndex = element.ElementIndex;
+                if (INVALID_INDEX == elementIndex || dataIndex > elementIndex)
+                {
+                    continue;
+                }
+                m_dataSource.UnInitElement(element.ElementTransform);
+                element.SetIndex(INVALID_INDEX);
+                if (prevDataCount - 1 >= elementIndex)
+                {
+                    m_dataSource.InitElement(element.ElementTransform, elementIndex);
+                }
+            }
+            m_needUpdateGridsThisFrame = true;
+            m_needUpdateContentSizeThisFrame = true;
+        }
+
+        public void AddElementTotail()
+        {
+            // HACK Do force refresh for now
+            m_needUpdateGridsThisFrame = true;
+            m_needUpdateContentSizeThisFrame = true;
+        }
+
+        public void RemoveElement(int dataIndex)
+        {
+            int prevDataCount = m_dataSource.DataElementCount - 1;
+            // Only unbind data to remove, then rebind data for element after the index
+            for (int i = 0, length = m_gridElements.Count; i < length; i++)
+            {
+                RecycleGridScrollElement element = m_gridElements[i];
+                int elementIndex = element.ElementIndex;
+                if (INVALID_INDEX == elementIndex || dataIndex > elementIndex)
+                {
+                    continue;
+                }
+                m_dataSource.UnInitElement(element.ElementTransform);
+                if (prevDataCount - 1 >= elementIndex)
+                {
+                    m_dataSource.InitElement(element.ElementTransform, elementIndex);
+                }
+                else
+                {
+                    element.SetIndex(INVALID_INDEX);
+                }
+            }
+            m_needUpdateGridsThisFrame = true;
+            m_needUpdateContentSizeThisFrame = true;
+        }
+
+        public void RemoveRange(int dataIndex, int count)
+        {
+            m_needUpdateGridsThisFrame = true;
+            m_needUpdateContentSizeThisFrame = true;
+            // HACK Unbind data and index, later do refresh
+            for (int i = 0, length = m_gridElements.Count; i < length; i++)
+            {
+                RecycleGridScrollElement element = m_gridElements[i];
+                if (element.ElementIndex >= dataIndex)
+                {
+                    m_dataSource.UnInitElement(element.ElementTransform);
+                    element.SetIndex(INVALID_INDEX);
+                    break;
+                }
+            }
+        }
+
+        public void InsertElements(IReadOnlyList<int> sortedDataIndexList)
+        {
+            m_needUpdateGridsThisFrame = true;
+            m_needUpdateContentSizeThisFrame = true;
+            if (TryGetTailIndexboundOfUsingElements(out int tailIndex))
+            {
+                int unbindStartIndex = INVALID_INDEX;
+                // HACK Unbind data and index, later do refresh
+                for (int i = 0, length = sortedDataIndexList.Count; i < length; i++)
+                {
+                    int tempIndex = sortedDataIndexList[i];
+                    if (tempIndex <= tailIndex)
+                    {
+                        unbindStartIndex = tempIndex;
+                        break;
+                    }
+                }
+
+                if (INVALID_INDEX != unbindStartIndex)
+                {
+                    for (int i = 0, length = m_gridElements.Count; i < length; i++)
+                    {
+                        RecycleGridScrollElement element = m_gridElements[i];
+                        if (element.ElementIndex >= unbindStartIndex)
+                        {
+                            m_dataSource.UnInitElement(element.ElementTransform);
+                            element.SetIndex(INVALID_INDEX);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void RemoveElements(IReadOnlyList<int> sortedDataIndexList)
+        {
+            m_needUpdateContentSizeThisFrame = true;
+            m_needUpdateGridsThisFrame = true;
+            if (TryGetTailIndexboundOfUsingElements(out int tailIndex))
+            {
+                int unbindStartIndex = INVALID_INDEX;
+                // HACK Unbind data and index, later do refresh
+                for (int i = 0, length = sortedDataIndexList.Count; i < length; i++)
+                {
+                    int tempIndex = sortedDataIndexList[i];
+                    if (tempIndex <= tailIndex)
+                    {
+                        unbindStartIndex = tempIndex;
+                        break;
+                    }
+                }
+
+                if (INVALID_INDEX != unbindStartIndex)
+                {
+                    for (int i = 0, length = m_gridElements.Count; i < length; i++)
+                    {
+                        RecycleGridScrollElement element = m_gridElements[i];
+                        if (element.ElementIndex >= unbindStartIndex)
+                        {
+                            m_dataSource.UnInitElement(element.ElementTransform);
+                            element.SetIndex(INVALID_INDEX);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void UpdateElement(int dataIndex)
+        {
+            m_needUpdateContentSizeThisFrame = true;
+            if (TryGetTailIndexboundOfUsingElements(out int tailIndex) &&
+                TryGetHeadIndexOfUsingElements(out int headIndex) &&
+                dataIndex >= headIndex && dataIndex <= tailIndex)
+            {
+                for (int i = 0, length = m_gridElements.Count; i < length; i++)
+                {
+                    RecycleGridScrollElement element = m_gridElements[i];
+                    if (element.ElementIndex == dataIndex)
+                    {
+                        m_dataSource.UnInitElement(element.ElementTransform);
+                        m_dataSource.InitElement(element.ElementTransform, dataIndex);
+                        break;
+                    }
+                }
+            }
+        }
 
         public void Init(IGridScrollDataSource source)
         {
@@ -92,16 +279,11 @@ namespace RecycleScrollView
             {
                 if (null == source)
                 {
-                    Debug.LogError("[RecycleScrollGrid] Init failed, the listview is null", this);
+                    Debug.LogError("[RecycleScrollGrid] Init failed, the listview is null", context: this);
                     return;
                 }
                 m_dataSource = source;
                 RefreshLayoutChanges();
-                if (null == m_onDataElementCountChanged)
-                {
-                    // m_onDataElementCountChanged = new Action<int>();
-                }
-                m_dataSource.OnDataElementCountChanged += m_onDataElementCountChanged;
             }
         }
 
@@ -116,7 +298,6 @@ namespace RecycleScrollView
                     m_dataSource.RemoveElement(gridRectTransform);
                 }
                 m_gridElements.Clear();
-                m_dataSource.OnDataElementCountChanged -= m_onDataElementCountChanged;
                 m_dataSource = null;
             }
         }
@@ -204,7 +385,7 @@ namespace RecycleScrollView
 
         private void OnScrollRectValueChanged(Vector2 position)
         {
-            AdjustGrids();
+            m_needUpdateGridsThisFrame = true;
         }
 
         private void AdjustGrids()
@@ -289,15 +470,6 @@ namespace RecycleScrollView
             return result;
         }
 
-        private bool IsCurrentLayoutDataInvalid()
-        {
-            bool isInvalid = null == _gridLayoutData ||
-                0 > _gridLayoutData.gridSize.x ||
-                0 > _gridLayoutData.gridSize.y ||
-                0 > _gridLayoutData.constraintCount;
-            return isInvalid;
-        }
-
         private void AddElements(int count)
         {
             Vector2 gridSize = _gridLayoutData.gridSize;
@@ -343,7 +515,7 @@ namespace RecycleScrollView
             }
         }
 
-        protected override void OnEnable()
+        private void OnEnable()
         {
             if (Application.isPlaying && null == m_onScrollRectValueChanged)
             {
@@ -352,7 +524,7 @@ namespace RecycleScrollView
             _scrollRect.onValueChanged.AddListener(m_onScrollRectValueChanged);
         }
 
-        protected override void OnDisable()
+        private void OnDisable()
         {
             if (Application.isPlaying && null != m_onScrollRectValueChanged)
             {
@@ -360,7 +532,22 @@ namespace RecycleScrollView
             }
         }
 
-        protected override void OnDestroy()
+        // TODO Subscribe to AfterScrollRectLateUpdate
+        private void LateUpdate()
+        {
+            if (m_needUpdateContentSizeThisFrame)
+            {
+                ApplySizeToScrollContent();
+            }
+            m_needUpdateContentSizeThisFrame = false;
+            if (m_needUpdateGridsThisFrame)
+            {
+                AdjustGrids();
+            }
+            m_needUpdateGridsThisFrame = false;
+        }
+
+        private void OnDestroy()
         {
             if (Application.isPlaying)
             {

@@ -1099,11 +1099,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ead822277e5fd04799aa1b7f72c9790, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _dataCount: 452
+  _startDataCount: 192
   _gridListUI: {fileID: 5438040486393077610}
   _scrollRectController: {fileID: 8076323305694725090}
+  _jumpToIndex: 55
   m_dataNames: []
-  _jumpToTestIndex: 55
 --- !u!222 &1608788679191021812
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1413,7 +1413,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7724b6184ab11b64780802bc645f86b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scrollRectController: {fileID: 8076323305694725090}
+  _gridScroll: {fileID: 8076323305694725090}
   _elementPrefab: {fileID: 2727807440643348400}
 --- !u!225 &6902774578593193210
 CanvasGroup:
@@ -1462,6 +1462,7 @@ MonoBehaviour:
       m_Top: 4
       m_Bottom: 4
   m_simulatedDataCount: 128
+  m_gridElements: []
 --- !u!114 &8428214899804519320
 MonoBehaviour:
   m_ObjectHideFlags: 0

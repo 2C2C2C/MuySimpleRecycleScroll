@@ -17,9 +17,9 @@ namespace RecycleScrollView.Sample
         private int _jumpToIndex = 55;
 
         [SerializeField]
-        private GuidElementData[] m_dataArr = null;
+        private List<GuidElementData> m_dataList = null;
         [SerializeField]
-        private string[] m_dataNames = null;
+        private List<string> m_dataNames = null;
 
         private void Start()
         {
@@ -29,15 +29,16 @@ namespace RecycleScrollView.Sample
         [ContextMenu("setup data")]
         private void SetupData()
         {
-            m_dataArr = new GuidElementData[_startDataCount];
-            m_dataNames = new string[_startDataCount];
+            m_dataList = new List<GuidElementData>(_startDataCount);
+            m_dataNames = new List<string>(_startDataCount);
             for (int i = 0; i < _startDataCount; i++)
             {
-                m_dataArr[i] = new GuidElementData();
-                m_dataNames[i] = m_dataArr[i].ItemName;
+                GuidElementData data = new GuidElementData();
+                m_dataList.Add(data);
+                m_dataNames.Add(data.ItemName);
             }
 
-            _gridListUI.Setup(new List<GuidElementData>(m_dataArr));
+            _gridListUI.Setup(m_dataList);
         }
 
         [ContextMenu(nameof(JumpToTest))]

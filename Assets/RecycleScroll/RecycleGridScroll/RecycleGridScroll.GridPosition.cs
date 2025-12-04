@@ -243,7 +243,7 @@ namespace RecycleScrollView
 
             if (null == m_elementComparsion)
             {
-                m_elementComparsion = new Comparison<RecycleGridScrollElement>(PositionDataComparer);
+                m_elementComparsion = new Comparison<RecycleGridScrollElement>(ElementComparer);
             }
             m_gridElements.Sort(m_elementComparsion);
         }
@@ -253,7 +253,7 @@ namespace RecycleScrollView
             return x.dataIndex.CompareTo(y.dataIndex);
         }
 
-        private int PositionDataComparer(RecycleGridScrollElement x, RecycleGridScrollElement y)
+        private int ElementComparer(RecycleGridScrollElement x, RecycleGridScrollElement y)
         {
             const int INVALID_INDEX = -1;
             int xIndex = x.ElementIndex, yIndex = y.ElementIndex;
