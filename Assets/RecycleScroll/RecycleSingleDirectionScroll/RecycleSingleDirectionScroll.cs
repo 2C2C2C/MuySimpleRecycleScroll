@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using ScrollDirection = RecycleScrollView.SingleDirectionScrollParam.ScrollDirection;
 
 namespace RecycleScrollView
 {
     [RequireComponent(typeof(UnityScrollRectExtended))]
-    public partial class RecycleSingleDirectionScroll : UIBehaviour
+    public partial class RecycleSingleDirectionScroll : MonoBehaviour, IRecycleScroll
     {
         [Header("Main params")]
         [SerializeField]
@@ -17,12 +16,10 @@ namespace RecycleScrollView
         [SerializeField]
         private HorizontalOrVerticalLayoutGroup _contentLayoutGroup;
 
-        // Simple layout param
         [SerializeField]
-        private SingleDirectionScrollParam _scrollParam;
+        private SingleDirectionScrollParam _scrollParam; // Simple layout param
 
-        // HACK
-        [SerializeField]
+        [SerializeField] // HACK Cache the element dat used to calculate size
         private RectTransform _preCacheContainer;
 
         private RecycleSingleDirectionScrollElement m_preCacheHeadElement;
@@ -38,12 +35,170 @@ namespace RecycleScrollView
         public bool HasDataSource => null != m_dataSource;
 
         private List<RecycleSingleDirectionScrollElement> m_currentUsingElements = new List<RecycleSingleDirectionScrollElement>();
-        private ISingleDirectionScrollDataSource m_dataSource;
+        private IRecycleScrollDataSource m_dataSource;
 
         public IReadOnlyList<RecycleSingleDirectionScrollElement> CurrentUsingElements => m_currentUsingElements;
         private UnityAction<Vector2> m_onScrollPositionChanged;
         private Action m_onLateUpdated;
         private Action<int, int> m_onDataElementCountChanged;
+
+        public void AddElementTotail()
+        {
+            NotifySelfDataCountChange(1);
+            AddElementsToTailIfNeed();
+        }
+
+        public void AddElementsToTail(int count)
+        {
+            NotifySelfDataCountChange(count);
+            AddElementsToTailIfNeed();
+        }
+
+        public void InsertElements(int dataIndex, int count)
+        {
+            if (0 == m_currentUsingElements.Count || 0 == count)
+            {
+                return; // In LateUpdate it will automaticlly handle this
+            }
+
+            NotifySelfDataCountChange(count);
+            int insertElementIndex = ElementIndexDataIndex2WayConvert(dataIndex);
+            int tailIndex = m_currentUsingElements[m_currentUsingElements.Count - 1].ElementIndex;
+            if (tailIndex < dataIndex)
+            {
+                return;
+            }
+            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+            {
+                RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
+                if (element.ElementIndex >= insertElementIndex)
+                {
+                    m_dataSource.UnInitElement(element.ElementTransform);
+                    m_dataSource.InitElement(element.ElementTransform, element.ElementIndex);
+                    element.ClearPreferredSize();
+                    element.CalculatePreferredSize();
+                }
+            }
+        }
+
+        public void InsertElements(IReadOnlyList<int> sortedDataIndexList)
+        {
+            if (0 == m_currentUsingElements.Count || 0 == sortedDataIndexList.Count)
+            {
+                return; // In LateUpdate it will automaticlly handle this
+            }
+
+            NotifySelfDataCountChange(sortedDataIndexList.Count);
+            int insertElementIndex = ElementIndexDataIndex2WayConvert(sortedDataIndexList[0]);
+            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+            {
+                RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
+                if (element.ElementIndex >= insertElementIndex)
+                {
+                    m_dataSource.UnInitElement(element.ElementTransform);
+                    m_dataSource.InitElement(element.ElementTransform, element.DataIndex);
+                    element.ClearPreferredSize();
+                    element.CalculatePreferredSize();
+                }
+            }
+        }
+
+        public void RemoveElements(int dataIndex, int count)
+        {
+            NotifySelfDataCountChange(-count);
+            // TODO should
+        }
+
+        public void RemoveElements(IReadOnlyList<int> sortedDataIndexList)
+        {
+            NotifySelfDataCountChange(-sortedDataIndexList.Count);
+        }
+
+        public void UpdateElement(int dataIndex)
+        {
+            int elementIndex = ElementIndexDataIndex2WayConvert(dataIndex);
+            if (TryGetShowingElement(elementIndex, out RecycleSingleDirectionScrollElement element))
+            {
+                Vector2 prevSize = element.ElementPreferredSize;
+                element.ClearPreferredSize();
+                element.CalculatePreferredSize();
+                Vector2 nextSize = element.ElementPreferredSize;
+                if (prevSize == nextSize)
+                {
+                    return;
+                }
+                // IDK if it is necessary to adjust content position
+            }
+        }
+
+        public void InsertElement(int dataIndex)
+        {
+            int prevDataCount = m_dataSource.DataElementCount - 1;
+            int insertElementIndex = ElementIndexDataIndex2WayConvert(dataIndex, prevDataCount);
+            int indexTailBound = GetCurrentShowingElementIndexTailBound();
+            if (insertElementIndex > indexTailBound)
+            {
+                return;
+            }
+
+            int indexHeadBound = GetCurrentShowingElementIndexHeadBound();
+            bool hasAdded = indexHeadBound > insertElementIndex;
+            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+            {
+                RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
+                int elementIndex = element.ElementIndex;
+                if (elementIndex == insertElementIndex && !hasAdded)
+                {
+                    RecycleSingleDirectionScrollElement newElement = InternalCreateElement(insertElementIndex);
+                    newElement.ElementTransform.SetSiblingIndex(element.ElementTransform.GetSiblingIndex());
+                    newElement.SetIndex(insertElementIndex, dataIndex);
+                    m_currentUsingElements.Insert(i, newElement);
+                    length++;
+                    hasAdded = true;
+                }
+                else if (insertElementIndex <= elementIndex && hasAdded)
+                {
+                    InternalChangeElementIndex(element, elementIndex + 1, false);
+                }
+            }
+        }
+
+        public void RemoveElement(int dataIndex)
+        {
+            NotifySelfDataCountChange(-1);
+            int prevDataCount = m_dataSource.DataElementCount - 1;
+            int removeElementIndex = ElementIndexDataIndex2WayConvert(dataIndex, prevDataCount);
+            int indexTailBound = GetCurrentShowingElementIndexTailBound();
+            if (removeElementIndex > indexTailBound)
+            {
+                return;
+            }
+
+            int indexHeadBound = GetCurrentShowingElementIndexHeadBound();
+            bool hasRemoved = indexHeadBound > removeElementIndex;
+            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+            {
+                RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
+                if (element.ElementIndex == removeElementIndex && !hasRemoved)
+                {
+                    m_currentUsingElements.RemoveAt(i);
+                    length--; i--;
+                    InternalRemoveElement(element);
+                    hasRemoved = true;
+                }
+                else if (dataIndex < removeElementIndex && hasRemoved)
+                {
+                    InternalChangeElementIndex(element, removeElementIndex - 1, false);
+                }
+            }
+
+            // TODO IDK if I should also move the scroll content
+            if (hasRemoved)
+            {
+                ForceRebuildContentLayout();
+                ForceAdjustElements();
+            }
+        }
 
         public void UnInit()
         {
@@ -54,12 +209,11 @@ namespace RecycleScrollView
                     m_dataSource.ReturnElement(m_currentUsingElements[i].ElementTransform);
                 }
                 m_currentUsingElements.Clear();
-                m_dataSource.OnDataElementCountChanged -= m_onDataElementCountChanged;
                 m_dataSource = null;
             }
         }
 
-        public void Init(ISingleDirectionScrollDataSource dataSource)
+        public void Init(IRecycleScrollDataSource dataSource)
         {
             if (HasDataSource)
             {
@@ -68,11 +222,6 @@ namespace RecycleScrollView
             else
             {
                 m_dataSource = dataSource;
-                if (null == m_onDataElementCountChanged)
-                {
-                    m_onDataElementCountChanged = new Action<int, int>(OnDataElementCountChanged);
-                }
-                m_dataSource.OnDataElementCountChanged += m_onDataElementCountChanged;
                 ApplyLayoutSetting();
                 ApplyLayoutSettingToScrollBar();
                 while (SIDE_STATUS_NEEDADD == CheckTailSideStatus())
@@ -239,7 +388,8 @@ namespace RecycleScrollView
         {
             RectTransform content = _scrollRect.content;
             RecycleSingleDirectionScrollElement newElement;
-            RectTransform requestedElement = m_dataSource.RequestElement(content, ElementIndexDataIndex2WayConvert(elementIndex));
+            RectTransform requestedElement = m_dataSource.RequestElement(content);
+            m_dataSource.InitElement(requestedElement, ElementIndexDataIndex2WayConvert(elementIndex));
             if (!requestedElement.TryGetComponent<RecycleSingleDirectionScrollElement>(out newElement))
             {
                 LogError($"Receive wrong element");
@@ -271,7 +421,14 @@ namespace RecycleScrollView
             m_hasPositionChangeCurrentFrame = true;
         }
 
-        // TODO Remove this, count change should be handle as data add/remove.
+        /// <param name="delta"> Positive if current count is greater than previous count </param>
+        private void NotifySelfDataCountChange(int delta)
+        {
+            int currentCount = m_dataSource.DataElementCount;
+            int prevCount = currentCount - delta;
+            OnDataElementCountChanged(prevCount, currentCount);
+        }
+
         private void OnDataElementCountChanged(int prevCount, int nextCount)
         {
             AdjustScrollBarSize();
@@ -301,7 +458,7 @@ namespace RecycleScrollView
             m_hasPositionChangeCurrentFrame = false;
         }
 
-        protected override void OnEnable()
+        private void OnEnable()
         {
             if (null == m_onScrollPositionChanged)
             {
@@ -317,7 +474,7 @@ namespace RecycleScrollView
             BindScrollBar();
         }
 
-        protected override void OnDisable()
+        private void OnDisable()
         {
             UnBindScrollBar();
 

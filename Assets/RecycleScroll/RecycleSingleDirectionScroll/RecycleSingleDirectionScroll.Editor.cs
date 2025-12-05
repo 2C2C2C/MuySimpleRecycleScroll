@@ -108,7 +108,7 @@ namespace RecycleScrollView
             behaviour.name = $"Element {elementIndex}; DataIndex {ElementIndexDataIndex2WayConvert(elementIndex)}";
         }
 
-        protected override void Reset()
+        private void Reset()
         {
             if (TryGetComponent<UnityScrollRectExtended>(out _scrollRect))
             {
@@ -116,7 +116,7 @@ namespace RecycleScrollView
             }
         }
 
-        protected override void OnValidate()
+        private void OnValidate()
         {
             ApplyLayoutSetting();
         }

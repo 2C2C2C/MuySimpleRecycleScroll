@@ -39,7 +39,7 @@ namespace RecycleScrollView.Sample
         }
     }
 
-    public class SingleDirectionChatScrollSample : MonoBehaviour, ISingleDirectionScrollDataSource
+    public class SingleDirectionChatScrollSample : MonoBehaviour, IRecycleScrollDataSource
     {
         [SerializeField]
         private RecycleSingleDirectionScroll _scrollController;
@@ -59,19 +59,11 @@ namespace RecycleScrollView.Sample
 
         private List<ChatData> m_chatList;
 
-        public event Action<int, int> OnDataElementCountChanged;
-
         public int DataElementCount => _dataCount;
 
-        public RectTransform RequestElement(RectTransform parent, int index)
+        public RectTransform RequestElement(RectTransform parent)
         {
             RectTransform newElement = RectTransform.Instantiate(_elementPrefab, parent);
-            if (newElement.TryGetComponent<ChatElementUI>(out ChatElementUI chatTextElement))
-            {
-                ChatData data = m_chatList[index];
-                chatTextElement.SetText(data.mainContent, data.quoteContent);
-                newElement.ForceUpdateRectTransforms();
-            }
             return newElement;
         }
 
@@ -79,6 +71,25 @@ namespace RecycleScrollView.Sample
         {
             element.SetParent(null);
             GameObject.Destroy(element.gameObject);
+        }
+
+        public void InitElement(RectTransform element, int dataIndex)
+        {
+            if (element.TryGetComponent<ChatElementUI>(out ChatElementUI chatTextElement))
+            {
+                ChatData data = m_chatList[dataIndex];
+                chatTextElement.SetText(data.mainContent, data.quoteContent);
+                element.ForceUpdateRectTransforms();
+            }
+        }
+
+        public void UnInitElement(RectTransform element)
+        {
+            if (element.TryGetComponent<ChatElementUI>(out ChatElementUI chatTextElement))
+            {
+                chatTextElement.SetText(string.Empty, string.Empty);
+                element.ForceUpdateRectTransforms();
+            }
         }
 
         public void ChangeElementIndex(RectTransform element, int prevIndex, int nextIndex)

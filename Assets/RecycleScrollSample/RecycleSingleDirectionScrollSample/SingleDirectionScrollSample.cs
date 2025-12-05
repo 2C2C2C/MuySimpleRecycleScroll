@@ -1,17 +1,17 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityRandom = UnityEngine.Random;
 
 namespace RecycleScrollView.Sample
 {
-    public class SingleDirectionScrollSample : MonoBehaviour, ISingleDirectionScrollDataSource
+    public class SingleDirectionScrollSample : MonoBehaviour, IRecycleScrollDataSource
     {
         [SerializeField]
         private RecycleSingleDirectionScroll _scrollController;
         [SerializeField]
         private RectTransform _elementPrefab;
 
+        [Header("Element params")]
         [SerializeField]
         private float _sizeMin = 80;
         [SerializeField]
@@ -25,25 +25,28 @@ namespace RecycleScrollView.Sample
         [SerializeField]
         private int _addOrRemoveIndex = -1;
 
-        private int m_currentDataCount = 0;
-
+        [SerializeField] // This should be show in inspector but non serialized
         private List<float> m_elementSizeList = new List<float>();
-        public event Action<int, int> OnDataElementCountChanged;
 
         public int DataElementCount => null == m_elementSizeList ? 0 : m_elementSizeList.Count;
 
-        public RectTransform RequestElement(RectTransform parent, int index)
+        public RectTransform RequestElement(RectTransform parent)
         {
-            if (DataElementCount <= index)
-            {
-                Debug.LogError($"RequestElement index {index} exceed data count {DataElementCount}");
-                return null;
-            }
-
             RectTransform newElement = RectTransform.Instantiate(_elementPrefab, parent);
-            if (newElement.TryGetComponent<TextElementUI>(out TextElementUI textElement))
+            return newElement;
+        }
+
+        public void ReturnElement(RectTransform element)
+        {
+            element.SetParent(null);
+            GameObject.Destroy(element.gameObject);
+        }
+
+        public void InitElement(RectTransform element, int dataIndex)
+        {
+            if (element.TryGetComponent<TextElementUI>(out TextElementUI textElement))
             {
-                float tempSize = m_elementSizeList[index];
+                float tempSize = m_elementSizeList[dataIndex];
                 if (_scrollController.IsHorizontal)
                 {
                     textElement.SetWidth(tempSize);
@@ -54,13 +57,22 @@ namespace RecycleScrollView.Sample
                 }
                 textElement.SetText($"size: {tempSize}");
             }
-            return newElement;
         }
 
-        public void ReturnElement(RectTransform element)
+        public void UnInitElement(RectTransform element)
         {
-            element.SetParent(null);
-            GameObject.Destroy(element.gameObject);
+            if (element.TryGetComponent<TextElementUI>(out TextElementUI textElement))
+            {
+                if (_scrollController.IsHorizontal)
+                {
+                    textElement.SetWidth(0);
+                }
+                else if (_scrollController.IsVertical)
+                {
+                    textElement.SetHeight(0);
+                }
+                textElement.SetText($"size: 0");
+            }
         }
 
         public void ChangeElementIndex(RectTransform element, int prevIndex, int nextIndex)
@@ -95,7 +107,6 @@ namespace RecycleScrollView.Sample
             {
                 m_elementSizeList.Add(UnityRandom.Range(_sizeMin, _sizeMax));
             }
-            m_currentDataCount = _startDataCount;
             _scrollController.Init(this);
         }
 
@@ -121,9 +132,7 @@ namespace RecycleScrollView.Sample
                 addIndex = DataElementCount;
                 m_elementSizeList.Add(UnityRandom.Range(_sizeMin, _sizeMax));
             }
-            m_currentDataCount = m_elementSizeList.Count;
             _scrollController.InsertElement(addIndex);
-            OnDataElementCountChanged?.Invoke(prevCount, DataElementCount);
         }
 
         [ContextMenu(nameof(RemoveTest))]
@@ -142,8 +151,6 @@ namespace RecycleScrollView.Sample
                 removeIndex = DataElementCount - 1;
                 m_elementSizeList.RemoveAt(removeIndex);
             }
-            m_currentDataCount = m_elementSizeList.Count;
-            OnDataElementCountChanged?.Invoke(prevCount, DataElementCount);
             _scrollController.RemoveElement(removeIndex);
         }
 
@@ -152,7 +159,7 @@ namespace RecycleScrollView.Sample
         {
             int prevCount = DataElementCount;
             m_elementSizeList.RemoveRange(0, 6);
-            OnDataElementCountChanged?.Invoke(prevCount, DataElementCount);
         }
+
     }
 }

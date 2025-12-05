@@ -4,7 +4,7 @@ namespace RecycleScrollView
 {
     public interface IRecycleElementSource
     {
-        RectTransform AddElement(RectTransform parent);
-        void RemoveElement(RectTransform element);
+        RectTransform RequestElement(RectTransform parent);
+        void ReturnElement(RectTransform element);
     }
 }

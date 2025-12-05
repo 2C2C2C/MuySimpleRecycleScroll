@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RecycleScrollView.Sample
 {
-    public class RecycleGridScrollSample : MonoBehaviour, IGridScrollDataSource
+    public class RecycleGridScrollSample : MonoBehaviour, IRecycleScrollDataSource
     {
         [SerializeField]
         private RecycleGridScroll _gridScroll;
@@ -45,7 +45,7 @@ namespace RecycleScrollView.Sample
             _gridScroll.Init(this);
         }
 
-        public RectTransform AddElement(RectTransform parent)
+        public RectTransform RequestElement(RectTransform parent)
         {
             RectTransform element = RectTransform.Instantiate(_elementPrefab, parent);
             if (element.TryGetComponent<GuidElementUI>(out GuidElementUI viewElement))
@@ -56,7 +56,7 @@ namespace RecycleScrollView.Sample
             return element;
         }
 
-        public void RemoveElement(RectTransform element)
+        public void ReturnElement(RectTransform element)
         {
             m_viewElementMap.Remove(element);
             GameObject.Destroy(element.gameObject);
@@ -108,15 +108,19 @@ namespace RecycleScrollView.Sample
                     tempToAdd.Add(new GuidElementData());
                 }
                 m_dataList.InsertRange(_insertIndex, tempToAdd);
-                _gridScroll.InsertRange(_insertIndex, _insertOrAddCount);
+                _gridScroll.InsertElements(_insertIndex, _insertOrAddCount);
             }
         }
 
         [ContextMenu(nameof(DoRemoveRange))]
         private void DoRemoveRange()
         {
-            m_dataList.RemoveRange(5, 10);
-            _gridScroll.RemoveRange(5, 10);
+            int dataCount = DataElementCount;
+            if (_removeIndex + _removeCount - 1 <= dataCount - 1)
+            {
+                m_dataList.RemoveRange(_removeIndex, _removeCount);
+                _gridScroll.RemoveElements(_removeIndex, _removeCount);
+            }
         }
 
         private void Awake()
