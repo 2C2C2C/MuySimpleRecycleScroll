@@ -82,6 +82,22 @@ namespace RecycleScrollView
         public int SimulatedDataCount => HasDataSource ? m_dataSource.DataElementCount : m_simulatedDataCount;
         public bool HasDataSource => null != m_dataSource;
 
+        public void AddElementTotail()
+        {
+            AddRangeToTail(1);
+        }
+
+        public void AddRangeToTail(int count)
+        {
+            if (0 == count)
+            {
+                return;
+            }
+            // HACK Do force refresh for now
+            m_needUpdateGridsThisFrame = true;
+            m_needUpdateContentSizeThisFrame = true;
+        }
+
         public void InsertElement(int dataIndex)
         {
             if (TryGetTailIndexboundOfUsingElements(out int tailIndex) && TryGetHeadIndexOfUsingElements(out _))
@@ -127,13 +143,6 @@ namespace RecycleScrollView
                     m_dataSource.InitElement(element.ElementTransform, elementIndex);
                 }
             }
-            m_needUpdateGridsThisFrame = true;
-            m_needUpdateContentSizeThisFrame = true;
-        }
-
-        public void AddElementTotail()
-        {
-            // HACK Do force refresh for now
             m_needUpdateGridsThisFrame = true;
             m_needUpdateContentSizeThisFrame = true;
         }
