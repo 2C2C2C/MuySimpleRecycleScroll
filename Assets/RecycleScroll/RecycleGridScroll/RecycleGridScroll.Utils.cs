@@ -91,8 +91,13 @@ namespace RecycleScrollView
             m_viewElementCountInColumn = Mathf.FloorToInt(viewportHeight / (gridSize.y + spacing.y));
             m_viewElementCountInRow = Mathf.FloorToInt(viewportWidth / (gridSize.x + spacing.x));
 
-            m_viewElementCountInColumn += (0 < viewportHeight % (gridSize.y + spacing.y)) ? 2 : 1;
-            m_viewElementCountInRow += (0 > viewportWidth % (gridSize.x + spacing.x)) ? 2 : 1;
+            // Request more elements
+            // m_viewElementCountInColumn += (0 < viewportHeight % (gridSize.y + spacing.y)) ? 2 : 1;
+            // m_viewElementCountInRow += (0 > viewportWidth % (gridSize.x + spacing.x)) ? 2 : 1;
+
+            // Request less elements, should be enough I think :X
+            m_viewElementCountInColumn++;
+            m_viewElementCountInRow++;
 
             if (SimpleGridLayoutData.Constraint.FixedColumnCount == _gridLayoutData.constraint)
             {

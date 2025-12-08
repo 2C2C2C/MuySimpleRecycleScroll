@@ -342,6 +342,7 @@ namespace RecycleScrollView
                     added.SetElementSize(gridSize);
                     m_gridElements.Add(added);
                     m_dataSource.UnInitElement(target);
+                    SetElementIndex(added, INVALID_INDEX);
                 }
             }
         }
