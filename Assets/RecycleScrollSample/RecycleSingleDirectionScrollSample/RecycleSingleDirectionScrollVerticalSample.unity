@@ -470,6 +470,7 @@ MonoBehaviour:
     reverseArrangement: 0
     spacing: 8
   _preCacheContainer: {fileID: 1266950960}
+  m_currentUsingElements: []
 --- !u!114 &202185321
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -488,7 +489,11 @@ MonoBehaviour:
   _sizeMax: 512
   _startDataCount: 56
   _jumpToTestIndex: 66
-  _addOrRemoveIndex: -1
+  _insertIndex: -1
+  _insertCount: 1
+  _removeIndex: -1
+  _removeCount: 1
+  m_elementSizeList: []
 --- !u!1 &313753371
 GameObject:
   m_ObjectHideFlags: 0
@@ -1735,7 +1740,11 @@ MonoBehaviour:
   _sizeMax: 256
   _startDataCount: 269
   _jumpToTestIndex: 107
-  _addOrRemoveIndex: 0
+  _insertIndex: -1
+  _insertCount: 1
+  _removeIndex: -1
+  _removeCount: 1
+  m_elementSizeList: []
 --- !u!114 &2111627557
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1748,7 +1757,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c41cf0e1e7a3d7348bf0dbe7063e9448, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _alwaysDrawGizmos: 0
+  _alwaysDrawGizmos: 1
   _enableLog: 0
   _defaultNavigationParams:
     normalizedPositionInViewPort: 0.3
@@ -1763,6 +1772,7 @@ MonoBehaviour:
     reverseArrangement: 1
     spacing: 12
   _preCacheContainer: {fileID: 313753372}
+  m_currentUsingElements: []
 --- !u!114 &2111627558
 MonoBehaviour:
   m_ObjectHideFlags: 0

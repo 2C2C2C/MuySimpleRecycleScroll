@@ -15,7 +15,7 @@ namespace RecycleScrollView
         void InitElement(RectTransform element, int index);
         void UnInitElement(RectTransform element);
 
-        /// <summary> Just change the view (or uninit then init again) </summary>
+        /// <summary> Used to (force)update view (basically uninit then init again should be enough) </summary>
         void ChangeElementIndex(RectTransform element, int prevIndex, int nextIndex);
     }
 }

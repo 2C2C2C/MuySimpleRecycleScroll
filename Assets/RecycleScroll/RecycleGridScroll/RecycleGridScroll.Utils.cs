@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using UnityEngine;
 
 namespace RecycleScrollView
@@ -106,6 +107,24 @@ namespace RecycleScrollView
             return result;
         }
 
+        private void SetElementIndex(RecycleGridScrollElement element, int index)
+        {
+            if (null != m_dataSource)
+            {
+                if (INVALID_INDEX == index)
+                {
+                    m_dataSource.UnInitElement(element.ElementTransform);
+                }
+                else
+                {
+                    m_dataSource.ChangeElementIndex(element.ElementTransform, element.ElementIndex, index);
+                }
+            }
+            element.SetIndex(index);
+#if UNITY_EDITOR
+            ChangeObjectName_EditorOnly(element, index);
+#endif
+        }
 
     }
 }

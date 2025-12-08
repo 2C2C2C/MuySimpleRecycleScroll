@@ -1361,10 +1361,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gridScroll: {fileID: 8076323305694725090}
   _elementPrefab: {fileID: 2727807440643348400}
-  _startDataCount: 192
+  _startDataCount: 320
   _jumpToIndex: 55
   _insertIndex: 0
-  _insertOrAddCount: 0
+  _insertCount: 0
   _removeIndex: 0
   _removeCount: 0
 --- !u!225 &6902774578593193210

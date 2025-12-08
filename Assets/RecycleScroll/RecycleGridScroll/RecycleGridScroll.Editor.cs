@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 using UnityEngine.UI.Extend;
+using Microsoft.Unity.VisualStudio.Editor;
 
 namespace RecycleScrollView
 {
@@ -253,7 +254,14 @@ namespace RecycleScrollView
 
         private void ChangeObjectName_EditorOnly(MonoBehaviour behaviour, int dataIndex)
         {
-            behaviour.name = $"Element {dataIndex}";
+            if (INVALID_INDEX == dataIndex)
+            {
+                behaviour.name = $"Element NonUsed";
+            }
+            else
+            {
+                behaviour.name = $"Element {dataIndex}";
+            }
         }
 
         private void Reset()

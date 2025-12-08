@@ -22,8 +22,14 @@ namespace RecycleScrollView.Sample
         [Header("Test parameters")]
         [SerializeField]
         private int _jumpToTestIndex = 10;
+        [SerializeField, Tooltip("-1 means add to tail")]
+        private int _insertIndex = -1;
+        [SerializeField, Range(0, 100)]
+        private int _insertCount = 1;
         [SerializeField]
-        private int _addOrRemoveIndex = -1;
+        private int _removeIndex = -1;
+        [SerializeField, Range(0, 100)]
+        private int _removeCount = 1;
 
         [SerializeField] // This should be show in inspector but non serialized
         private List<float> m_elementSizeList = new List<float>();
@@ -110,55 +116,63 @@ namespace RecycleScrollView.Sample
             _scrollController.Init(this);
         }
 
-        [ContextMenu(nameof(JumpToTest))]
-        private void JumpToTest()
+        [ContextMenu(nameof(DoJumpToTest))]
+        private void DoJumpToTest()
         {
             _scrollController.JumpToElementInstant(_jumpToTestIndex);
         }
 
-        [ContextMenu(nameof(AddTest))]
-        private void AddTest()
+        [ContextMenu(nameof(DoInsertTest))]
+        private void DoInsertTest()
         {
-            int prevCount = DataElementCount;
-            int addIndex = _addOrRemoveIndex;
-            if (-1 != _addOrRemoveIndex && _addOrRemoveIndex <= DataElementCount - 1)
+            if (0 == _insertCount)
             {
-                // Add to specific index
-                m_elementSizeList.Insert(_addOrRemoveIndex, UnityRandom.Range(_sizeMin, _sizeMax));
+                return;
             }
-            else
+
+            if (-1 >= _insertIndex) // Add to tail
             {
-                // Add to tail
-                addIndex = DataElementCount;
-                m_elementSizeList.Add(UnityRandom.Range(_sizeMin, _sizeMax));
+                if (1 == _insertCount)
+                {
+                    m_elementSizeList.Add(UnityRandom.Range(_sizeMin, _sizeMax));
+                    _scrollController.AddElementTotail();
+                }
+                else
+                {
+                    for (int i = 0; i < _insertCount; i++)
+                    {
+                        m_elementSizeList.Add(UnityRandom.Range(_sizeMin, _sizeMax));
+                    }
+                    _scrollController.AddElementsToTail(_insertCount);
+                }
             }
-            _scrollController.InsertElement(addIndex);
+            else if (m_elementSizeList.Count - 1 >= _insertIndex) // Insert
+            {
+                List<float> toAdd = new List<float>(_insertCount);
+                for (int i = 0; i < _insertCount; i++)
+                {
+                    toAdd.Add(UnityRandom.Range(_sizeMin, _sizeMax));
+                }
+                m_elementSizeList.InsertRange(_insertIndex, toAdd);
+                _scrollController.InsertElements(_insertIndex, _insertCount);
+            }
         }
 
-        [ContextMenu(nameof(RemoveTest))]
-        private void RemoveTest()
+        [ContextMenu(nameof(DoRemoveTest))]
+        private void DoRemoveTest()
         {
-            int prevCount = DataElementCount;
-            int removeIndex = _addOrRemoveIndex;
-            if (-1 != _addOrRemoveIndex && _addOrRemoveIndex <= DataElementCount - 1)
+            if (0 == _removeCount)
             {
-                // Remove from specific index
-                m_elementSizeList.RemoveAt(removeIndex);
+                return;
             }
-            else
+            if (_removeCount > DataElementCount || DataElementCount - 1 < _removeIndex + _removeCount - 1 || -1 == _removeIndex)
             {
-                // Remove from tail
-                removeIndex = DataElementCount - 1;
-                m_elementSizeList.RemoveAt(removeIndex);
+                Debug.LogError($"Out of range");
+                return;
             }
-            _scrollController.RemoveElement(removeIndex);
-        }
-
-        [ContextMenu(nameof(RemoveRangeTest))]
-        private void RemoveRangeTest()
-        {
-            int prevCount = DataElementCount;
-            m_elementSizeList.RemoveRange(0, 6);
+            
+            m_elementSizeList.RemoveRange(_removeIndex, _removeCount);
+            _scrollController.RemoveElements(_removeIndex, _removeCount);
         }
 
     }

@@ -25,8 +25,8 @@ Basic functionalities provided:
 
 # Roadmap
 
+- [x] Simple samples
 - [ ] Bug fixing
-- [ ] Complete samples
 - [ ] Radial scroll
-- [ ] Another scroll bar behaviour for SingleDirectionScroll as UnityScrollRect
 - [ ] A simple virtual scroller for all scrolls
+- [ ] Another scroll bar behaviour for SingleDirectionScroll which based on total scoll length

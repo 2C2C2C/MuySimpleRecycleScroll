@@ -7,6 +7,8 @@ namespace RecycleScrollView
 {
     public partial class RecycleSingleDirectionScroll
     {
+        private const int INVALID_INDEX = -1;
+
         private void ForceRebuildContentLayout()
         {
             float size = CalculateCurrentContentTotalPreferredSize();
@@ -97,7 +99,7 @@ namespace RecycleScrollView
             return totalSize;
         }
 
-        private bool TryCalculateGapBetweenElement(int lowElementIndex, int highElementIndex, out float gapSize)
+        private bool TryCalculateGapBetween2Elements(int lowElementIndex, int highElementIndex, out float gapSize)
         {
             if (null == m_dataSource || lowElementIndex >= highElementIndex)
             {
@@ -165,9 +167,9 @@ namespace RecycleScrollView
         // To solve reverse arrangement issues
         private int ElementIndexDataIndex2WayConvert(int index, int dataCount)
         {
-            if (null == m_dataSource)
+            if (null == m_dataSource || INVALID_INDEX == index)
             {
-                return -1;
+                return INVALID_INDEX;
             }
             int result = _scrollParam.reverseArrangement ?
                 dataCount - index - 1 :

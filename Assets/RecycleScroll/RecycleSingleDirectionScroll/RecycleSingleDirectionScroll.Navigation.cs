@@ -57,12 +57,11 @@ namespace RecycleScrollView
                 return;
             }
 
-            RemoveCurrentElements();
+            RemoveAllCurrentElements();
             _scrollRect.StopMovement();
 
-            RecycleSingleDirectionScrollElement targetElement = InternalCreateElement(elementIndex);
-            targetElement.SetIndex(elementIndex, ElementIndexDataIndex2WayConvert(elementIndex));
-            targetElement.CalculatePreferredSize();
+            RecycleSingleDirectionScrollElement targetElement = InternalAddElement(elementIndex);
+            InternalChangeElementIndex(element, elementIndex, true);
             m_currentUsingElements.Add(targetElement);
             Vector2 targetElementSize = targetElement.ElementPreferredSize;
 
@@ -204,7 +203,7 @@ namespace RecycleScrollView
                 tempMove = normalizedScrollProgressOffset - currentNormalizedProgressOffset;
                 if (0f < tempMove)
                 {
-                    if (TryCalculateGapBetweenElement(elementIndex, elementIndex + 1, out float gapSize))
+                    if (TryCalculateGapBetween2Elements(elementIndex, elementIndex + 1, out float gapSize))
                     {
                         tempMove = tempMove / stepSize * gapSize;
                     }
@@ -215,7 +214,7 @@ namespace RecycleScrollView
                 }
                 else if (0f > tempMove)
                 {
-                    if (TryCalculateGapBetweenElement(elementIndex - 1, elementIndex, out float gapSize) || TryCalculateGapBetweenElement(elementIndex, elementIndex + 1, out gapSize))
+                    if (TryCalculateGapBetween2Elements(elementIndex - 1, elementIndex, out float gapSize) || TryCalculateGapBetween2Elements(elementIndex, elementIndex + 1, out gapSize))
                     {
                         tempMove = tempMove / stepSize * gapSize;
                     }
@@ -238,7 +237,7 @@ namespace RecycleScrollView
                 {
                     // Progress is not reach base position yet
                     SetPreCacheElement(tempIndex - 1, ref m_preCacheHeadElement);
-                    if (TryCalculateGapBetweenElement(tempIndex - 1, tempIndex, out gapSize))
+                    if (TryCalculateGapBetween2Elements(tempIndex - 1, tempIndex, out gapSize))
                     {
                         tempIndex--;
                         tempMove -= (stepSize + currentNormalizedProgressOffset) * gapSize;
@@ -252,7 +251,7 @@ namespace RecycleScrollView
                 {
                     // Progress is beyound base position
                     SetPreCacheElement(tempIndex + 1, ref m_preCacheTailElement);
-                    if (TryCalculateGapBetweenElement(tempIndex, tempIndex + 1, out gapSize))
+                    if (TryCalculateGapBetween2Elements(tempIndex, tempIndex + 1, out gapSize))
                     {
                         tempMove -= currentNormalizedProgressOffset / stepSize * gapSize;
                     }
@@ -267,7 +266,7 @@ namespace RecycleScrollView
                 while (tempIndex < elementIndex)
                 {
                     SetPreCacheElement(tempIndex + 1, ref m_preCacheTailElement);
-                    if (TryCalculateGapBetweenElement(tempIndex, tempIndex + 1, out gapSize))
+                    if (TryCalculateGapBetween2Elements(tempIndex, tempIndex + 1, out gapSize))
                     {
                         tempMove += gapSize;
                         tempIndex++;
@@ -280,7 +279,7 @@ namespace RecycleScrollView
                 while (tempIndex > elementIndex)
                 {
                     SetPreCacheElement(tempIndex - 1, ref m_preCacheHeadElement);
-                    if (TryCalculateGapBetweenElement(tempIndex - 1, tempIndex, out gapSize))
+                    if (TryCalculateGapBetween2Elements(tempIndex - 1, tempIndex, out gapSize))
                     {
                         tempMove -= gapSize;
                         tempIndex--;
@@ -302,7 +301,7 @@ namespace RecycleScrollView
                     {
                         tempMove += gapSize * (normalizedScrollProgressOffset / stepSize);
                     }
-                    else if (TryCalculateGapBetweenElement(elementIndex - 1, elementIndex, out gapSize))
+                    else if (TryCalculateGapBetween2Elements(elementIndex - 1, elementIndex, out gapSize))
                     {
                         tempMove -= gapSize * (normalizedScrollProgressOffset / stepSize);
                     }
@@ -317,7 +316,7 @@ namespace RecycleScrollView
                     {
                         tempMove -= gapSize * (normalizedScrollProgressOffset / stepSize);
                     }
-                    else if (TryCalculateGapBetweenElement(elementIndex, elementIndex + 1, out gapSize))
+                    else if (TryCalculateGapBetween2Elements(elementIndex, elementIndex + 1, out gapSize))
                     {
                         tempMove += gapSize * (normalizedScrollProgressOffset / stepSize);
                     }
@@ -345,7 +344,7 @@ namespace RecycleScrollView
             RectTransform content = _scrollRect.content;
             RectTransform viewport = _scrollRect.viewport;
 
-            RemoveCurrentElements();
+            RemoveAllCurrentElements();
             _scrollRect.StopMovement();
             AddElementToHead(elementIndex);
             SetPreCacheElement(elementIndex + 1, ref m_preCacheTailElement);
@@ -393,8 +392,8 @@ namespace RecycleScrollView
                 float stepSize = 1f / (m_dataSource.DataElementCount - 1);
                 float offset = normalizedScrollProgressOffset / stepSize;
                 Vector2 contentMoveDir = -GetScrollDirectionVector(_scrollParam.scrollDirection); // HACK the actual content move direction is inverse of scroll directions
-                if ((0f < offset && TryCalculateGapBetweenElement(elementIndex, elementIndex + 1, out float gapSize)) ||
-                    (0f > offset && TryCalculateGapBetweenElement(elementIndex - 1, elementIndex, out gapSize)))
+                if ((0f < offset && TryCalculateGapBetween2Elements(elementIndex, elementIndex + 1, out float gapSize)) ||
+                    (0f > offset && TryCalculateGapBetween2Elements(elementIndex - 1, elementIndex, out gapSize)))
                 {
                     offsetV3 = gapSize * offset * contentMoveDir;
                 }

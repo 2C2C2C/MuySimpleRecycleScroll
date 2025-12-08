@@ -24,7 +24,7 @@ namespace RecycleScrollView.Sample
         [SerializeField]
         private int _insertIndex;
         [SerializeField]
-        private int _insertOrAddCount;
+        private int _insertCount;
 
         [SerializeField]
         private int _removeIndex;
@@ -90,11 +90,11 @@ namespace RecycleScrollView.Sample
         [ContextMenu(nameof(DoInsertRange))]
         private void DoInsertRange()
         {
-            if (0 >= _insertOrAddCount)
+            if (0 >= _insertCount)
             {
                 return;
             }
-            else if (1 == _insertOrAddCount)
+            else if (1 == _insertCount)
             {
                 GuidElementData addData = new GuidElementData();
                 m_dataList.Insert(_insertIndex, addData);
@@ -103,12 +103,12 @@ namespace RecycleScrollView.Sample
             else
             {
                 List<GuidElementData> tempToAdd = new List<GuidElementData>();
-                for (int i = 0; i < _insertOrAddCount; i++)
+                for (int i = 0; i < _insertCount; i++)
                 {
                     tempToAdd.Add(new GuidElementData());
                 }
                 m_dataList.InsertRange(_insertIndex, tempToAdd);
-                _gridScroll.InsertElements(_insertIndex, _insertOrAddCount);
+                _gridScroll.InsertElements(_insertIndex, _insertCount);
             }
         }
 
