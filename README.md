@@ -8,13 +8,13 @@ Basic functionalities provided:
 - Recycle scroll
 - Add/Remove single item
 - Jump to specify item
-- Scrollbar (For OneDirScroll, the scollbar wont linearly scroll the content)
+- Scrollbar (For SingleDirectionScroll, the scollbar wont linearly scroll the content, I try my best to make it wont jitter :X)
 
 ## RecycleGridScroll
 
 ![GridSample](https://github.com/2C2C2C/MuyScrollRect/blob/master/TempSrc/RecycleGridScroll01.gif)
 
-## RecycleOneDirectionScroll
+## RecycleSingleDirectionScroll
 
 ![HorizontalSample](https://github.com/2C2C2C/MuyScrollRect/blob/master/TempSrc/RecycleOneDirectionScrollHorizontal01.gif)
 
@@ -25,8 +25,8 @@ Basic functionalities provided:
 
 # Roadmap
 
+- [x] Simple samples
 - [ ] Bug fixing
-- [ ] Complete samples
 - [ ] Radial scroll
-- [ ] Another scroll bar behaviour for SingleDirectionScroll as UnityScrollRect
 - [ ] A simple virtual scroller for all scrolls
+- [ ] Another scroll bar behaviour for SingleDirectionScroll which based on total scoll length

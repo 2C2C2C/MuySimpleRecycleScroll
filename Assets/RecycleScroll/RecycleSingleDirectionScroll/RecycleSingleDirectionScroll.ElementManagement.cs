@@ -15,11 +15,10 @@ namespace RecycleScrollView
 
         private void AddElementToHead(int elementIndex)
         {
-            RecycleSingleDirectionScrollElement newElement = InternalCreateElement(elementIndex);
+            RecycleSingleDirectionScrollElement newElement = InternalAddElement(elementIndex);
             m_currentUsingElements.Insert(0, newElement);
-            newElement.CalculatePreferredSize();
-            newElement.transform.SetAsFirstSibling();
-            newElement.SetIndex(elementIndex, ElementIndexDataIndex2WayConvert(elementIndex));
+            InternalChangeElementIndex(newElement, elementIndex, true);
+            newElement.ElementTransform.SetAsFirstSibling();
 
             // Set pre cache element
             int indexForPreCache = (0 < elementIndex) ? elementIndex - 1 : 0;
@@ -29,11 +28,10 @@ namespace RecycleScrollView
 
         private void AddElementToTail(int elementIndex)
         {
-            RecycleSingleDirectionScrollElement newElement = InternalCreateElement(elementIndex);
+            RecycleSingleDirectionScrollElement newElement = InternalAddElement(elementIndex);
             m_currentUsingElements.Add(newElement);
-            newElement.CalculatePreferredSize();
-            newElement.transform.SetAsLastSibling();
-            newElement.SetIndex(elementIndex, ElementIndexDataIndex2WayConvert(elementIndex));
+            InternalChangeElementIndex(newElement, elementIndex, true);
+            newElement.ElementTransform.SetAsLastSibling();
 
             int dataCount = m_dataSource.DataElementCount;
             int indexForPreCache = (dataCount - 1 > elementIndex) ? elementIndex + 1 : elementIndex;
@@ -47,13 +45,7 @@ namespace RecycleScrollView
             if (null != m_preCacheHeadElement)
             {
                 int dataIndex = element.DataIndex;
-                m_dataSource.ChangeElementIndex(m_preCacheHeadElement.ElementTransform, m_preCacheHeadElement.DataIndex, dataIndex);
-                m_preCacheHeadElement.SetIndex(ElementIndexDataIndex2WayConvert(dataIndex), dataIndex);
-                m_preCacheHeadElement.ClearPreferredSize();
-                m_preCacheHeadElement.CalculatePreferredSize();
-#if UNITY_EDITOR
-                ChangeObjectName_EditorOnly(m_preCacheHeadElement, ElementIndexDataIndex2WayConvert(dataIndex));
-#endif
+                InternalChangeElementIndex(m_preCacheHeadElement, dataIndex, true);
             }
             m_currentUsingElements.RemoveAt(0);
             InternalRemoveElement(element);
@@ -66,84 +58,10 @@ namespace RecycleScrollView
             if (null != m_preCacheTailElement)
             {
                 int dataIndex = element.DataIndex;
-                m_dataSource.ChangeElementIndex(m_preCacheTailElement.ElementTransform, m_preCacheTailElement.DataIndex, dataIndex);
-                m_preCacheTailElement.SetIndex(ElementIndexDataIndex2WayConvert(dataIndex), dataIndex);
-                m_preCacheTailElement.ClearPreferredSize();
-                m_preCacheTailElement.CalculatePreferredSize();
-#if UNITY_EDITOR
-                ChangeObjectName_EditorOnly(m_preCacheTailElement, ElementIndexDataIndex2WayConvert(dataIndex));
-#endif
+                InternalChangeElementIndex(m_preCacheHeadElement, dataIndex, true);
             }
             m_currentUsingElements.RemoveAt(elementIndex);
             InternalRemoveElement(element);
-        }
-
-        public void InsertElement(int dataIndex)
-        {
-            int prevDataCount = m_dataSource.DataElementCount - 1;
-            int insertElementIndex = ElementIndexDataIndex2WayConvert(dataIndex, prevDataCount);
-            int indexTailBound = GetCurrentShowingElementIndexTailBound();
-            if (insertElementIndex > indexTailBound)
-            {
-                return;
-            }
-
-            int indexHeadBound = GetCurrentShowingElementIndexHeadBound();
-            bool hasAdded = indexHeadBound > insertElementIndex;
-            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
-            {
-                RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
-                int elementIndex = element.ElementIndex;
-                if (elementIndex == insertElementIndex && !hasAdded)
-                {
-                    RecycleSingleDirectionScrollElement newElement = InternalCreateElement(insertElementIndex);
-                    newElement.ElementTransform.SetSiblingIndex(element.ElementTransform.GetSiblingIndex());
-                    newElement.SetIndex(insertElementIndex, dataIndex);
-                    m_currentUsingElements.Insert(i, newElement);
-                    length++;
-                    hasAdded = true;
-                }
-                else if (insertElementIndex <= elementIndex && hasAdded)
-                {
-                    InternalChangeElementIndex(element, elementIndex + 1, false);
-                }
-            }
-        }
-
-        public void RemoveElement(int dataIndex)
-        {
-            int prevDataCount = m_dataSource.DataElementCount - 1;
-            int removeElementIndex = ElementIndexDataIndex2WayConvert(dataIndex, prevDataCount);
-            int indexTailBound = GetCurrentShowingElementIndexTailBound();
-            if (removeElementIndex > indexTailBound)
-            {
-                return;
-            }
-
-            int indexHeadBound = GetCurrentShowingElementIndexHeadBound();
-            bool hasRemoved = indexHeadBound > removeElementIndex;
-            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
-            {
-                RecycleSingleDirectionScrollElement element = m_currentUsingElements[i];
-                if (element.ElementIndex == removeElementIndex && !hasRemoved)
-                {
-                    m_currentUsingElements.RemoveAt(i);
-                    length--; i--;
-                    InternalRemoveElement(element);
-                    hasRemoved = true;
-                }
-                else if (dataIndex < removeElementIndex && hasRemoved)
-                {
-                    InternalChangeElementIndex(element, removeElementIndex - 1, false);
-                }
-            }
-
-            // TODO IDK if I should also move the scroll content
-            if (hasRemoved)
-            {
-                ForceRebuildContentLayout();
-                ForceAdjustElements();
-            }
         }
 
         /// <returns> -1 Need add, 0 Enough, 1 Need remove</returns>
@@ -439,17 +357,14 @@ namespace RecycleScrollView
 
                 if (null == element)
                 {
-                    element = InternalCreateElement(elementIndex);
+                    element = InternalAddElement(elementIndex);
                     element.ElementTransform.SetParent(_preCacheContainer);
                     element.ClearPreferredSize();
                     element.CalculatePreferredSize();
                 }
                 else if (element.ElementIndex != elementIndex)
                 {
-                    m_dataSource.ChangeElementIndex(element.ElementTransform, element.DataIndex, ElementIndexDataIndex2WayConvert(elementIndex));
-                    element.SetIndex(elementIndex, ElementIndexDataIndex2WayConvert(elementIndex));
-                    element.ClearPreferredSize();
-                    element.CalculatePreferredSize();
+                    InternalChangeElementIndex(element, elementIndex, true);
                 }
                 else
                 {

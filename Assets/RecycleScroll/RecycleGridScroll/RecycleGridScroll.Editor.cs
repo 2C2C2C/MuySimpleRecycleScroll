@@ -1,13 +1,13 @@
 ﻿#if UNITY_EDITOR
-using UnityEngine.EventSystems;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 using UnityEngine.UI.Extend;
+using Microsoft.Unity.VisualStudio.Editor;
 
 namespace RecycleScrollView
 {
-    public partial class RecycleGridScroll : UIBehaviour
+    public partial class RecycleGridScroll
     {
         private const int INDEX_LABEL_FONT_SIZE = 16;
 
@@ -250,6 +250,28 @@ namespace RecycleScrollView
             Gizmos.DrawLine(bottomRightWorld, topRightWorld);
 
             Gizmos.color = prevColor;
+        }
+
+        private void ChangeObjectName_EditorOnly(MonoBehaviour behaviour, int dataIndex)
+        {
+            if (INVALID_INDEX == dataIndex)
+            {
+                behaviour.name = $"Element NonUsed";
+            }
+            else
+            {
+                behaviour.name = $"Element {dataIndex}";
+            }
+        }
+
+        private void Reset()
+        {
+            if (TryGetComponent<UnityScrollRectExtended>(out _scrollRect))
+            {
+                _scrollRect.StopMovement();
+                return;
+            }
+            Debug.LogWarning("[RecycleScrollGrid] should be on the same GameObject with ScrollRect, please remove this component and add RecycleScrollGrid to ScrollRect GameObject", this.gameObject);
         }
 
     }

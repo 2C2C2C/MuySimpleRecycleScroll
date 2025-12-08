@@ -13,6 +13,7 @@ namespace RecycleScrollView
             public Vector2 normalizedElementRectPositionOffset;
         }
 
+        [Header("Navigation params")]
         [SerializeField]
         private RecycleScrollGridElementNavigationParams _defaultNavigationParams;
 

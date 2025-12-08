@@ -206,10 +206,7 @@ namespace RecycleScrollView
                         {
                             m_dataSource.ChangeElementIndex(gridElement.ElementTransform, gridElement.ElementIndex, dataIndex);
                         }
-                        gridElement.SetIndex(dataIndex);
-#if UNITY_EDITOR
-                        ChangeObjectName_EditorOnly(gridElement, dataIndex);
-#endif
+                        SetElementIndex(gridElement, dataIndex);
                     }
                     gridElement.ElementTransform.localPosition = gridPositionData.gridPositionInContent;
                     gridElement.SetObjectActive();
@@ -222,8 +219,7 @@ namespace RecycleScrollView
                 RecycleGridScrollElement gridElement = m_gridElements[i];
                 if (0 <= gridElement.ElementIndex) // prevIndexValidprevIndexValid
                 {
-                    m_dataSource.UnInitElement(gridElement.ElementTransform);
-                    gridElement.SetIndex(INVALID_INDEX);
+                    SetElementIndex(gridElement, INVALID_INDEX);
                 }
                 gridElement.SetObjectDeactive();
             }
@@ -235,15 +231,18 @@ namespace RecycleScrollView
             {
                 return;
             }
+
+            // Ascend by element index
             if (null == m_positionDataComparsion)
             {
                 m_positionDataComparsion = new Comparison<GridPositionData>(PositionDataComparer);
             }
             m_dataNeed2Show.Sort(m_positionDataComparsion);
 
+            // Ascend by element index and also put the grids to tail which wont show
             if (null == m_elementComparsion)
             {
-                m_elementComparsion = new Comparison<RecycleGridScrollElement>(PositionDataComparer);
+                m_elementComparsion = new Comparison<RecycleGridScrollElement>(ElementComparer);
             }
             m_gridElements.Sort(m_elementComparsion);
         }
@@ -253,7 +252,7 @@ namespace RecycleScrollView
             return x.dataIndex.CompareTo(y.dataIndex);
         }
 
-        private int PositionDataComparer(RecycleGridScrollElement x, RecycleGridScrollElement y)
+        private int ElementComparer(RecycleGridScrollElement x, RecycleGridScrollElement y)
         {
             const int INVALID_INDEX = -1;
             int xIndex = x.ElementIndex, yIndex = y.ElementIndex;

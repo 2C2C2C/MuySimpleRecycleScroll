@@ -283,7 +283,7 @@ namespace RecycleScrollView
             // Greater than pre-calculated base position -> try gap to next element
             if ((greaterIfPositive && deltaToExpectedPosition > 0f) || (!greaterIfPositive && deltaToExpectedPosition < 0f))
             {
-                if (TryCalculateGapBetweenElement(elementIndex, elementIndex + 1, out float gapSize))
+                if (TryCalculateGapBetween2Elements(elementIndex, elementIndex + 1, out float gapSize))
                 {
                     float tempDelta = Mathf.Abs(deltaToExpectedPosition);
                     if (tempDelta <= gapSize)
@@ -294,7 +294,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        if (TryCalculateGapBetweenElement(elementIndex + 1, elementIndex + 2, out float nextGapSize) && tempDelta - gapSize <= nextGapSize)
+                        if (TryCalculateGapBetween2Elements(elementIndex + 1, elementIndex + 2, out float nextGapSize) && tempDelta - gapSize <= nextGapSize)
                         {
                             tempDelta -= gapSize;
                             tempDelta = stepSize * (tempDelta / nextGapSize);
@@ -318,7 +318,7 @@ namespace RecycleScrollView
             // Less than pre-calculated base position -> try gap to previous element
             else if ((greaterIfPositive && deltaToExpectedPosition < 0f) || (!greaterIfPositive && deltaToExpectedPosition > 0f))
             {
-                if (TryCalculateGapBetweenElement(elementIndex - 1, elementIndex, out float gapSize))
+                if (TryCalculateGapBetween2Elements(elementIndex - 1, elementIndex, out float gapSize))
                 {
                     float tempDelta = Mathf.Abs(deltaToExpectedPosition);
                     if (tempDelta <= gapSize)
@@ -329,7 +329,7 @@ namespace RecycleScrollView
                     else
                     {
                         // Log($"Check {elementIndex} {expectedNormalizedBasePosition} {deltaToExpectedPosition}");
-                        if (TryCalculateGapBetweenElement(elementIndex - 2, elementIndex - 1, out float nextGapSize) &&
+                        if (TryCalculateGapBetween2Elements(elementIndex - 2, elementIndex - 1, out float nextGapSize) &&
                             tempDelta - gapSize <= nextGapSize)
                         {
                             tempDelta -= gapSize;

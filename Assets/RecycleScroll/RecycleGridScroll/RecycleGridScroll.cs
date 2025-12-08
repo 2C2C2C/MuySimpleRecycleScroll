@@ -2,17 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace RecycleScrollView
 {
     [ExecuteAlways]
     [RequireComponent(typeof(UnityScrollRectExtended))]
-    public partial class RecycleGridScroll : UIBehaviour
+    public partial class RecycleGridScroll : MonoBehaviour, IRecycleScroll
     {
-        private const int INVALID_INDEX = -1;
-
         private static Comparison<RecycleGridScrollElement> s_gridElementCompare;
 
         public static Comparison<RecycleGridScrollElement> GridElementCompare
@@ -68,10 +65,13 @@ namespace RecycleScrollView
         private int m_viewElementCountInRow = 0;
         private int m_viewElementCountInColumn = 0;
 
-        private IGridScrollDataSource m_dataSource = null;
-        private List<RecycleGridScrollElement> m_gridElements;
+        private IRecycleScrollDataSource m_dataSource = null;
+        [SerializeField]
+        private List<RecycleGridScrollElement> m_gridElements; // TODO should be Nonserialized but show in inspector
         private UnityAction<Vector2> m_onScrollRectValueChanged;
-        private Action<int> m_onDataElementCountChanged;
+
+        private bool m_needUpdateGridsThisFrame = false;
+        private bool m_needUpdateContentSizeThisFrame = false;
 
         public int ViewItemCount => m_viewElementCount;
         public int ViewItemCountInRow => m_viewElementCountInRow;
@@ -82,7 +82,109 @@ namespace RecycleScrollView
         public int SimulatedDataCount => HasDataSource ? m_dataSource.DataElementCount : m_simulatedDataCount;
         public bool HasDataSource => null != m_dataSource;
 
-        public void Init(IGridScrollDataSource source)
+        public void AddElementTotail()
+        {
+            AddElementsToTail(1);
+        }
+
+        public void AddElementsToTail(int count)
+        {
+            if (0 == count)
+            {
+                return;
+            }
+            // HACK Do force refresh for now
+            m_needUpdateGridsThisFrame = true;
+            m_needUpdateContentSizeThisFrame = true;
+        }
+
+        public void InsertElement(int dataIndex)
+        {
+            InsertElements(dataIndex, 1);
+        }
+
+        public void InsertElements(int dataIndex, int count)
+        {
+            for (int i = 0, length = m_gridElements.Count; i < length; i++)
+            {
+                RecycleGridScrollElement element = m_gridElements[i];
+                int elementIndex = element.ElementIndex;
+                if (INVALID_INDEX == elementIndex || dataIndex > elementIndex)
+                {
+                    continue;
+                }
+                // Refresh element view
+                m_dataSource.UnInitElement(element.ElementTransform);
+                m_dataSource.InitElement(element.ElementTransform, elementIndex);
+            }
+            m_needUpdateGridsThisFrame = true;
+            m_needUpdateContentSizeThisFrame = true;
+        }
+
+        public void InsertElements(IReadOnlyList<int> sortedDataIndexList)
+        {
+            InsertElements(sortedDataIndexList[0], sortedDataIndexList.Count); // HACK
+        }
+
+        public void RemoveElement(int dataIndex)
+        {
+            RemoveElements(dataIndex, 1);
+        }
+
+        public void RemoveElements(int dataIndex, int count)
+        {
+            int dataCount = m_dataSource.DataElementCount;
+            m_needUpdateGridsThisFrame = true;
+            m_needUpdateContentSizeThisFrame = true;
+            // HACK Unbind data and index, later do refresh
+            for (int i = 0, length = m_gridElements.Count; i < length; i++)
+            {
+                RecycleGridScrollElement element = m_gridElements[i];
+                int elementIndex = element.ElementIndex;
+                if (elementIndex >= dataIndex && INVALID_INDEX != elementIndex)
+                {
+                    if (dataCount - 1 >= elementIndex)
+                    {
+                        // Element still valid 
+                        SetElementIndex(element, elementIndex);
+                    }
+                    else
+                    {
+                        // Element invalid
+                        SetElementIndex(element, INVALID_INDEX);
+                    }
+                }
+            }
+            m_needUpdateGridsThisFrame = true;
+            m_needUpdateContentSizeThisFrame = true;
+        }
+
+        public void RemoveElements(IReadOnlyList<int> sortedDataIndexList)
+        {
+            RemoveElements(sortedDataIndexList[0], sortedDataIndexList.Count); // HACK
+        }
+
+        public void UpdateElement(int dataIndex)
+        {
+            m_needUpdateContentSizeThisFrame = true;
+            if (TryGetTailIndexboundOfUsingElements(out int tailIndex) &&
+                TryGetHeadIndexOfUsingElements(out int headIndex) &&
+                dataIndex >= headIndex && dataIndex <= tailIndex)
+            {
+                for (int i = 0, length = m_gridElements.Count; i < length; i++)
+                {
+                    RecycleGridScrollElement element = m_gridElements[i];
+                    if (element.ElementIndex == dataIndex)
+                    {
+                        m_dataSource.UnInitElement(element.ElementTransform);
+                        m_dataSource.InitElement(element.ElementTransform, dataIndex);
+                        break;
+                    }
+                }
+            }
+        }
+
+        public void Init(IRecycleScrollDataSource source)
         {
             if (HasDataSource)
             {
@@ -92,16 +194,11 @@ namespace RecycleScrollView
             {
                 if (null == source)
                 {
-                    Debug.LogError("[RecycleScrollGrid] Init failed, the listview is null", this);
+                    Debug.LogError("[RecycleScrollGrid] Init failed, the listview is null", context: this);
                     return;
                 }
                 m_dataSource = source;
                 RefreshLayoutChanges();
-                if (null == m_onDataElementCountChanged)
-                {
-                    // m_onDataElementCountChanged = new Action<int>();
-                }
-                m_dataSource.OnDataElementCountChanged += m_onDataElementCountChanged;
             }
         }
 
@@ -113,10 +210,9 @@ namespace RecycleScrollView
                 {
                     RectTransform gridRectTransform = m_gridElements[i].ElementTransform;
                     m_dataSource.UnInitElement(gridRectTransform);
-                    m_dataSource.RemoveElement(gridRectTransform);
+                    m_dataSource.ReturnElement(gridRectTransform);
                 }
                 m_gridElements.Clear();
-                m_dataSource.OnDataElementCountChanged -= m_onDataElementCountChanged;
                 m_dataSource = null;
             }
         }
@@ -152,36 +248,6 @@ namespace RecycleScrollView
             OnScrollRectValueChanged(Vector2.zero);
         }
 
-        [ContextMenu("Adjust Cached Items")]
-        private int CalculateCurrentViewportShowCount()
-        {
-            m_viewElementCountInRow = 0;
-            m_viewElementCountInColumn = 0;
-            Vector2 gridSize = new Vector2(_gridLayoutData.gridSize.x, _gridLayoutData.gridSize.y);
-
-            Vector2 spacing = _gridLayoutData.Spacing;
-            RectTransform viewport = _scrollRect.viewport;
-            float viewportHeight = Mathf.Abs(viewport.rect.height);
-            float viewportWidth = Mathf.Abs(viewport.rect.width);
-            m_viewElementCountInColumn = Mathf.FloorToInt(viewportHeight / (gridSize.y + spacing.y));
-            m_viewElementCountInRow = Mathf.FloorToInt(viewportWidth / (gridSize.x + spacing.x));
-
-            m_viewElementCountInColumn += (0 < viewportHeight % (gridSize.y + spacing.y)) ? 2 : 1;
-            m_viewElementCountInRow += (0 > viewportWidth % (gridSize.x + spacing.x)) ? 2 : 1;
-
-            if (SimpleGridLayoutData.Constraint.FixedColumnCount == _gridLayoutData.constraint)
-            {
-                m_viewElementCountInRow = Mathf.Clamp(m_viewElementCountInRow, 1, _gridLayoutData.constraintCount);
-            }
-            else
-            {
-                m_viewElementCountInColumn = Mathf.Clamp(m_viewElementCountInColumn, 1, _gridLayoutData.constraintCount);
-            }
-
-            int result = (1 + m_viewElementCountInRow) * (1 + m_viewElementCountInColumn);
-            return result;
-        }
-
         private void AdjustCachedGrids()
         {
             m_viewElementCount = CalculateCurrentViewportShowCount();
@@ -200,11 +266,6 @@ namespace RecycleScrollView
                 content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, contentSize.x);
                 content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentSize.y);
             }
-        }
-
-        private void OnScrollRectValueChanged(Vector2 position)
-        {
-            AdjustGrids();
         }
 
         private void AdjustGrids()
@@ -237,11 +298,11 @@ namespace RecycleScrollView
             if (0 < deltaCount)
             {
                 // Need to add element
-                AddElements(deltaCount);
+                InternalAddElements(deltaCount);
             }
             if (0 > deltaCount && currentElementCount > 0)
             {
-                RemoveElements(deltaCount);
+                InternalRemoveElements(deltaCount);
             }
             if (0 == m_dataNeed2Show.Count)
             {
@@ -265,47 +326,14 @@ namespace RecycleScrollView
             }
         }
 
-        private Vector2 CalculateContentSize(int dataCount)
-        {
-            RectOffset m_padding = _gridLayoutData.RectPadding;
-            Vector2 gridSize = _gridLayoutData.gridSize;
-            Vector2 spacing = _gridLayoutData.Spacing;
-            Vector2 result = default;
-
-            int constraintCount = _gridLayoutData.constraintCount;
-            int groupCount = (dataCount % constraintCount > 0) ? (dataCount / constraintCount) + 1 : (dataCount / constraintCount);
-            if (_gridLayoutData.constraint == SimpleGridLayoutData.Constraint.FixedColumnCount)
-            {
-                result.x = (constraintCount * gridSize.x) + ((constraintCount - 1) * spacing.x);
-                result.y = groupCount * gridSize.y + (groupCount - 1) * spacing.y;
-            }
-            else if (_gridLayoutData.constraint == SimpleGridLayoutData.Constraint.FixedRowCount)
-            {
-                result.y = (constraintCount * gridSize.y) + ((constraintCount - 1) * spacing.y);
-                result.x = groupCount * gridSize.x + (groupCount - 1) * spacing.x;
-            }
-
-            result += new Vector2(m_padding.horizontal, m_padding.vertical);
-            return result;
-        }
-
-        private bool IsCurrentLayoutDataInvalid()
-        {
-            bool isInvalid = null == _gridLayoutData ||
-                0 > _gridLayoutData.gridSize.x ||
-                0 > _gridLayoutData.gridSize.y ||
-                0 > _gridLayoutData.constraintCount;
-            return isInvalid;
-        }
-
-        private void AddElements(int count)
+        private void InternalAddElements(int count)
         {
             Vector2 gridSize = _gridLayoutData.gridSize;
             if (HasDataSource)
             {
                 for (int i = 0; i < count; i++)
                 {
-                    RectTransform target = m_dataSource.AddElement(_gridContainer);
+                    RectTransform target = m_dataSource.RequestElement(_gridContainer);
                     if (!target.gameObject.TryGetComponent<RecycleGridScrollElement>(out RecycleGridScrollElement added))
                     {
                         Debug.LogError("[RecycleScrollGrid] The element prefab does not have RecycleScrollGridElement component", target.gameObject);
@@ -314,11 +342,12 @@ namespace RecycleScrollView
                     added.SetElementSize(gridSize);
                     m_gridElements.Add(added);
                     m_dataSource.UnInitElement(target);
+                    SetElementIndex(added, INVALID_INDEX);
                 }
             }
         }
 
-        private void RemoveElements(int count)
+        private void InternalRemoveElements(int count)
         {
             // Make sure non-used elements on the back
             m_gridElements.Sort(GridElementCompare);
@@ -329,7 +358,7 @@ namespace RecycleScrollView
                 for (int i = 0; i < count; i++)
                 {
                     int elementIndex = elementCount - i - 1;
-                    m_dataSource.RemoveElement(m_gridElements[elementIndex].ElementTransform);
+                    m_dataSource.ReturnElement(m_gridElements[elementIndex].ElementTransform);
                 }
             }
 
@@ -343,26 +372,7 @@ namespace RecycleScrollView
             }
         }
 
-#if UNITY_EDITOR
-
-        private void ChangeObjectName_EditorOnly(MonoBehaviour behaviour, int dataIndex)
-        {
-            behaviour.name = $"Element {dataIndex}";
-        }
-
-        protected override void Reset()
-        {
-            if (TryGetComponent<UnityScrollRectExtended>(out _scrollRect))
-            {
-                _scrollRect.StopMovement();
-                return;
-            }
-            Debug.LogWarning("[RecycleScrollGrid] should be on the same GameObject with ScrollRect, please remove this component and add RecycleScrollGrid to ScrollRect GameObject", this.gameObject);
-        }
-
-#endif
-
-        protected override void OnEnable()
+        private void OnEnable()
         {
             if (Application.isPlaying && null == m_onScrollRectValueChanged)
             {
@@ -371,7 +381,7 @@ namespace RecycleScrollView
             _scrollRect.onValueChanged.AddListener(m_onScrollRectValueChanged);
         }
 
-        protected override void OnDisable()
+        private void OnDisable()
         {
             if (Application.isPlaying && null != m_onScrollRectValueChanged)
             {
@@ -379,13 +389,33 @@ namespace RecycleScrollView
             }
         }
 
-        protected override void OnDestroy()
+        private void OnScrollRectValueChanged(Vector2 position)
+        {
+            m_needUpdateGridsThisFrame = true;
+        }
+
+        // TODO Subscribe to AfterScrollRectLateUpdate
+        private void LateUpdate()
+        {
+            if (m_needUpdateContentSizeThisFrame)
+            {
+                ApplySizeToScrollContent();
+            }
+            m_needUpdateContentSizeThisFrame = false;
+            if (m_needUpdateGridsThisFrame)
+            {
+                AdjustGrids();
+            }
+            m_needUpdateGridsThisFrame = false;
+        }
+
+        private void OnDestroy()
         {
             if (Application.isPlaying)
             {
                 if (null != m_gridElements && 0 < m_gridElements.Count)
                 {
-                    RemoveElements(m_gridElements.Count);
+                    InternalRemoveElements(m_gridElements.Count);
                     m_gridElements.Clear();
                 }
             }
