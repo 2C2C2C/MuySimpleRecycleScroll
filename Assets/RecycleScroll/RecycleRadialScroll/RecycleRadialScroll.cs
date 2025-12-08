@@ -1,10 +1,13 @@
 using System;
+using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityMathf = UnityEngine.Mathf;
+using System.Collections.Generic;
 
-namespace UnityEngine.UI.Extension
+namespace RecycleScrollView
 {
-    public class RadialLayoutScroll : MonoBehaviour
+    public partial class RecycleRadialScroll : MonoBehaviour, IRecycleScroll
     {
         [Serializable]
         public enum ReceiveScrollPositionType
@@ -19,11 +22,7 @@ namespace UnityEngine.UI.Extension
         [SerializeField]
         private RadialLayout _radiaLayout;
 
-        /// <summary>
-        /// When normalized postion is 1
-        /// </summary>
-        [SerializeField]
-        private float _startAngle = 180f;
+       
         /// <summary>
         /// When normalized postion is 0
         /// </summary>
@@ -34,9 +33,66 @@ namespace UnityEngine.UI.Extension
         private ReceiveScrollPositionType _scrollType;
 
         [NonSerialized]
-        private float m_normalizedValue;
+        private float m_normalizedProgress;
+
+        private IRecycleScrollDataSource m_dataSource;
 
         private UnityAction<Vector2> m_onScrollerValueChanged;
+
+        public void UnInit()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Init(IRecycleScrollDataSource dataSource)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddElementTotail()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddElementsToTail(int count)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void InsertElement(int dataIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void InsertElements(int dataIndex, int count)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void InsertElements(IReadOnlyList<int> sortedDataIndexList)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveElement(int dataIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveElements(int dataIndex, int count)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveElements(IReadOnlyList<int> sortedDataIndexList)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateElement(int dataIndex)
+        {
+            throw new NotImplementedException();
+        }
 
         private void OnScrollerValueChanged(Vector2 normalizedValue)
         {
@@ -47,7 +103,7 @@ namespace UnityEngine.UI.Extension
                 _ => 0f,
             };
 
-            m_normalizedValue = nextNormalizedValue;
+            m_normalizedProgress = nextNormalizedValue;
             float nextAngle = _startAngle + _totalRotateAngle * (1f - nextNormalizedValue);
             //Debug.Log(nextAngle);
             if (0 > nextAngle)
@@ -72,18 +128,6 @@ namespace UnityEngine.UI.Extension
         {
             _scroller.onValueChanged.RemoveListener(m_onScrollerValueChanged);
         }
-
-#if UNITY_EDITOR
-
-        [SerializeField, Range(0f, 1f)]
-        private float _debugSetPosition;
-
-        [ContextMenu(nameof(SetDebugPosition_EditorOnly))]
-        private void SetDebugPosition_EditorOnly()
-        {
-            _debugSetPosition = UnityMathf.Clamp01(_debugSetPosition);
-        }
-#endif
 
     }
 }

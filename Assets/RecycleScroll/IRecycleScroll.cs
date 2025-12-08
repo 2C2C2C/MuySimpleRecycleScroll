@@ -5,6 +5,9 @@ namespace RecycleScrollView
     /// <summary> Some basic add/remove methods </summary>
     public interface IRecycleScroll
     {
+        public void Init(IRecycleScrollDataSource dataSource);
+        public void UnInit();
+
         public void AddElementTotail();
         public void AddElementsToTail(int count);
 

@@ -46,6 +46,47 @@ namespace RecycleScrollView
         private Action m_onLateUpdated;
         private Action<int, int> m_onDataElementCountChanged;
 
+        public void UnInit()
+        {
+            if (HasDataSource)
+            {
+                for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+                {
+                    m_dataSource.ReturnElement(m_currentUsingElements[i].ElementTransform);
+                }
+                m_currentUsingElements.Clear();
+                m_dataSource = null;
+            }
+        }
+
+        public void Init(IRecycleScrollDataSource dataSource)
+        {
+            if (HasDataSource)
+            {
+                LogError($"Already register a datasource");
+            }
+            else
+            {
+                m_dataSource = dataSource;
+                ApplyLayoutSetting();
+                ApplyLayoutSettingToScrollBar();
+                while (SIDE_STATUS_NEEDADD == CheckTailSideStatus())
+                {
+                    if (!AddElementsToTailIfNeed())
+                    {
+                        break;
+                    }
+                }
+
+                int headElementIndex = CalculateAvailabeNextHeadElementIndex();
+                SetPreCacheElement(headElementIndex, ref m_preCacheHeadElement);
+                int tailElementIndex = CalculateAvailabeNextTailElementIndex();
+                SetPreCacheElement(tailElementIndex, ref m_preCacheTailElement);
+                _scrollRect.CallUpdateBoundsAndPrevData();
+                OnDataElementCountChanged(0, m_dataSource.DataElementCount);
+            }
+        }
+
         public void AddElementTotail()
         {
             NotifySelfDataCountChange(1);
@@ -211,47 +252,6 @@ namespace RecycleScrollView
                     return;
                 }
                 // IDK if it is necessary to adjust content position
-            }
-        }
-
-        public void UnInit()
-        {
-            if (HasDataSource)
-            {
-                for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
-                {
-                    m_dataSource.ReturnElement(m_currentUsingElements[i].ElementTransform);
-                }
-                m_currentUsingElements.Clear();
-                m_dataSource = null;
-            }
-        }
-
-        public void Init(IRecycleScrollDataSource dataSource)
-        {
-            if (HasDataSource)
-            {
-                LogError($"Already register a datasource");
-            }
-            else
-            {
-                m_dataSource = dataSource;
-                ApplyLayoutSetting();
-                ApplyLayoutSettingToScrollBar();
-                while (SIDE_STATUS_NEEDADD == CheckTailSideStatus())
-                {
-                    if (!AddElementsToTailIfNeed())
-                    {
-                        break;
-                    }
-                }
-
-                int headElementIndex = CalculateAvailabeNextHeadElementIndex();
-                SetPreCacheElement(headElementIndex, ref m_preCacheHeadElement);
-                int tailElementIndex = CalculateAvailabeNextTailElementIndex();
-                SetPreCacheElement(tailElementIndex, ref m_preCacheTailElement);
-                _scrollRect.CallUpdateBoundsAndPrevData();
-                OnDataElementCountChanged(0, m_dataSource.DataElementCount);
             }
         }
 

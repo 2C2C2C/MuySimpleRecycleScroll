@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.UI.Extension
+namespace UnityEngine.UI
 {
     /* @Hiko
      * User need to be careful for the case dat there are too many elements so the warp each other :(
@@ -75,7 +75,6 @@ namespace UnityEngine.UI.Extension
                 child.localPosition = pos * radius;
                 angle += _antiClockwise ? _internvalAngle : -_internvalAngle;
             }
-
         }
 
         private void RefillChildren()

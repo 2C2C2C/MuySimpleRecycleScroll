@@ -82,6 +82,39 @@ namespace RecycleScrollView
         public int SimulatedDataCount => HasDataSource ? m_dataSource.DataElementCount : m_simulatedDataCount;
         public bool HasDataSource => null != m_dataSource;
 
+        public void UnInit()
+        {
+            if (HasDataSource)
+            {
+                for (int i = 0, length = m_gridElements.Count; i < length; i++)
+                {
+                    RectTransform gridRectTransform = m_gridElements[i].ElementTransform;
+                    m_dataSource.UnInitElement(gridRectTransform);
+                    m_dataSource.ReturnElement(gridRectTransform);
+                }
+                m_gridElements.Clear();
+                m_dataSource = null;
+            }
+        }
+
+        public void Init(IRecycleScrollDataSource source)
+        {
+            if (HasDataSource)
+            {
+                Debug.LogError($"[RecycleScrollGrid] Init failed, the already has data source");
+            }
+            else
+            {
+                if (null == source)
+                {
+                    Debug.LogError("[RecycleScrollGrid] Init failed, the listview is null", context: this);
+                    return;
+                }
+                m_dataSource = source;
+                RefreshLayoutChanges();
+            }
+        }
+
         public void AddElementTotail()
         {
             AddElementsToTail(1);
@@ -181,39 +214,6 @@ namespace RecycleScrollView
                         break;
                     }
                 }
-            }
-        }
-
-        public void Init(IRecycleScrollDataSource source)
-        {
-            if (HasDataSource)
-            {
-                Debug.LogError($"[RecycleScrollGrid] Init failed, the already has data source");
-            }
-            else
-            {
-                if (null == source)
-                {
-                    Debug.LogError("[RecycleScrollGrid] Init failed, the listview is null", context: this);
-                    return;
-                }
-                m_dataSource = source;
-                RefreshLayoutChanges();
-            }
-        }
-
-        public void Uninit()
-        {
-            if (HasDataSource)
-            {
-                for (int i = 0, length = m_gridElements.Count; i < length; i++)
-                {
-                    RectTransform gridRectTransform = m_gridElements[i].ElementTransform;
-                    m_dataSource.UnInitElement(gridRectTransform);
-                    m_dataSource.ReturnElement(gridRectTransform);
-                }
-                m_gridElements.Clear();
-                m_dataSource = null;
             }
         }
 
