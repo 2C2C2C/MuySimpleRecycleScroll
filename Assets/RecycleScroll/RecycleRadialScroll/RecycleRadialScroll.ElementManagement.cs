@@ -1,11 +1,14 @@
+using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
 using UnityEngine;
 
 namespace RecycleScrollView
 {
     public partial class RecycleRadialScroll
     {
+        private static Comparison<RecycleRadialScrollElement> s_elementSortComparison = null;
+        private static Comparison<ElementPositionData> s_positionDataSortComparison = null;
+
         internal struct ElementPositionData
         {
             public int elmentIndex;
@@ -22,7 +25,7 @@ namespace RecycleScrollView
         [Header("Layout params")]
         [SerializeField]
         private float _radius;
-        [SerializeField, Range(0f, 360f)]
+        [SerializeField, Range(0f, 360f), Tooltip("Rotate anticlockwise")]
         private float _startAngle;
         [SerializeField, Range(0f, 360f)]
         private float _internvalAngle;
@@ -30,6 +33,11 @@ namespace RecycleScrollView
         private bool _antiClockwise;
         [SerializeField]
         private bool _reverseArrangment = false;
+
+        [SerializeField]
+        private Vector2 _previewElementSize = 100f * Vector2.one;
+        [SerializeField]
+        private bool _applyRotationToElement = false;
 
         private List<ElementPositionData> m_positionList;
         private List<RecycleRadialScrollElement> m_usingElements;
@@ -41,17 +49,17 @@ namespace RecycleScrollView
             _scrollRect.horizontal = IsHorizontal;
             switch (_dragContentScrollDirection)
             {
-                case ScrollDirection.Vertical_UpToDown:
-                    content.pivot = new Vector2(0.5f, 1f);
-                    break;
-                case ScrollDirection.Vertical_DownToUp:
-                    content.pivot = new Vector2(0.5f, 0f);
-                    break;
                 case ScrollDirection.Horizontal_LeftToRight:
                     content.pivot = new Vector2(0f, 0.5f);
                     break;
                 case ScrollDirection.Horizontal_RightToLeft:
                     content.pivot = new Vector2(1f, 0.5f);
+                    break;
+                case ScrollDirection.Vertical_UpToDown:
+                    content.pivot = new Vector2(0.5f, 1f);
+                    break;
+                case ScrollDirection.Vertical_DownToUp:
+                    content.pivot = new Vector2(0.5f, 0f);
                     break;
             }
         }
@@ -62,6 +70,7 @@ namespace RecycleScrollView
             ApplyPositionToElements();
         }
 
+        // TODO Deal different scroll direction cases
         private void CalculatePositionData()
         {
             if (null == m_positionList)
@@ -84,7 +93,7 @@ namespace RecycleScrollView
 
             Matrix4x4 containerLocalToWorld = _elementContainer.localToWorldMatrix;
             float radius = Mathf.Abs(_radius);
-            float angle = _startAngle - temp;
+            float angle = _startAngle - (_antiClockwise ? temp : -temp);
             int prevValiid0RoundElementIndex = -1; // HACK only for 0 round case
             for (int i = 0; i < elementCount; i++)
             {
@@ -135,6 +144,31 @@ namespace RecycleScrollView
                 m_positionList[i] = new ElementPositionData(elementIndex, isValid, elementWorldPosition);
                 angle += _antiClockwise ? _internvalAngle : -_internvalAngle;
             }
+
+            if (null == s_positionDataSortComparison)
+            {
+                s_positionDataSortComparison = new Comparison<ElementPositionData>((x, y) =>
+                {
+                    bool xValid = x.canShow;
+                    bool yValid = y.canShow;
+
+                    if (xValid && yValid)
+                    {
+                        return x.elmentIndex.CompareTo(y.elmentIndex);
+                    }
+                    else if (xValid)
+                    {
+                        return -1;
+                    }
+                    else if (yValid)
+                    {
+                        return 1;
+                    }
+
+                    return x.elmentIndex.CompareTo(y.elmentIndex);
+                });
+            }
+            m_positionList.Sort(s_positionDataSortComparison);
         }
 
         private void AdjustCachedElements()
@@ -166,26 +200,30 @@ namespace RecycleScrollView
 
         private void ApplyPositionToElements()
         {
-            m_usingElements.Sort((x, y) =>
+            if (null == s_elementSortComparison)
             {
-                bool xValid = WillElementShow(x.ElementIndex);
-                bool yValid = WillElementShow(y.ElementIndex);
+                s_elementSortComparison = new Comparison<RecycleRadialScrollElement>((x, y) =>
+                {
+                    bool xValid = WillElementShow(x.ElementIndex);
+                    bool yValid = WillElementShow(y.ElementIndex);
 
-                if (xValid && yValid)
-                {
-                    return 0;
-                }
-                else if (xValid)
-                {
-                    return 1;
-                }
-                else if (yValid)
-                {
-                    return -1;
-                }
+                    if (xValid && yValid)
+                    {
+                        return x.ElementIndex.CompareTo(y.ElementIndex);
+                    }
+                    else if (xValid)
+                    {
+                        return -1;
+                    }
+                    else if (yValid)
+                    {
+                        return 1;
+                    }
 
-                return x.ElementIndex.CompareTo(y.ElementIndex);
-            });
+                    return x.ElementIndex.CompareTo(y.ElementIndex);
+                });
+            }
+            m_usingElements.Sort(s_elementSortComparison);
 
             for (int i = 0, length = m_positionList.Count; i < length; i++)
             {
@@ -199,6 +237,38 @@ namespace RecycleScrollView
                 if (positionData.canShow)
                 {
                     element.ShowElement();
+                    if (_applyRotationToElement)
+                    {
+                        // HACK simple solution
+                        if (IsHorizontal)
+                        {
+                            RectTransform center = (null == _overrideRadialCenter) ? (RectTransform)transform : _overrideRadialCenter;
+                            Vector3 centerToElement = positionData.worldPosition - center.position;
+                            if (0f < Vector3.Dot(centerToElement, Vector3.up))
+                            {
+                                element.ElementTransform.up = centerToElement.normalized;
+                            }
+                            else if (0f > Vector3.Dot(centerToElement, Vector3.up))
+                            {
+                                element.ElementTransform.up = -centerToElement.normalized;
+                            }
+                        }
+                        else if (IsVertical)
+                        {
+                            RectTransform center = (null == _overrideRadialCenter) ? (RectTransform)transform : _overrideRadialCenter;
+                            Vector3 centerToElement = positionData.worldPosition - center.position;
+                            float dotResult = Vector3.Dot(centerToElement, Vector3.right);
+                            if (0f < dotResult)
+                            {
+                                element.ElementTransform.right = centerToElement.normalized;
+                            }
+                            else if (0f > dotResult)
+                            {
+                                element.ElementTransform.right = -centerToElement.normalized;
+                            }
+                        }
+
+                    }
                 }
                 else
                 {
@@ -207,15 +277,17 @@ namespace RecycleScrollView
             }
         }
 
-        private void ChangeElementIndex(RecycleRadialScrollElement element, int index)
+        private void ChangeElementIndex(RecycleRadialScrollElement element, int elementIndex)
         {
-            m_dataSource.ChangeElementIndex(element.ElementTransform, element.ElementIndex, index);
+            m_dataSource.ChangeElementIndex(element.ElementTransform, ElementIndexDataIndex2WayConvert(element.ElementIndex), ElementIndexDataIndex2WayConvert(elementIndex));
+            element.SetIndex(elementIndex, ElementIndexDataIndex2WayConvert(elementIndex));
 
 #if UNITY_EDITOR
 
-            ChangeObjectName_EditorOnly(element, index);
+            ChangeObjectName_EditorOnly(element, elementIndex);
 
 #endif
+
         }
 
     }

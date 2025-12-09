@@ -5,7 +5,7 @@ namespace RecycleScrollView
 {
     public partial class RecycleRadialScroll
     {
-        private int INVALID_INDEX = -1;
+        private const int INVALID_INDEX = -1;
 
         private bool IsElementRectInterestedWithViewport(Vector3 elementWorldPos, Vector2 elementSize)
         {
@@ -45,6 +45,10 @@ namespace RecycleScrollView
 
         private int ElementIndexDataIndex2WayConvert(int index)
         {
+            if (null == m_dataSource || INVALID_INDEX == index)
+            {
+                return INVALID_INDEX;
+            }
             return ElementIndexDataIndex2WayConvert(index, m_dataSource.DataElementCount);
         }
 

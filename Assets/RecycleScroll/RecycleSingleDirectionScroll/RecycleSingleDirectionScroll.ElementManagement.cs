@@ -183,18 +183,18 @@ namespace RecycleScrollView
             bool isBeyoudEdge = false;
             switch (_scrollParam.scrollDirection)
             {
-                case ScrollDirection.Vertical_UpToDown:
-                    baseRectPosition.y -= tempSize;
-                    break;
-                case ScrollDirection.Vertical_DownToUp:
-                    baseRectPosition.y += tempSize;
-                    break;
-
                 case ScrollDirection.Horizontal_LeftToRight:
                     baseRectPosition.x += tempSize;
                     break;
                 case ScrollDirection.Horizontal_RightToLeft:
                     baseRectPosition.x -= tempSize;
+                    break;
+
+                case ScrollDirection.Vertical_UpToDown:
+                    baseRectPosition.y -= tempSize;
+                    break;
+                case ScrollDirection.Vertical_DownToUp:
+                    baseRectPosition.y += tempSize;
                     break;
                 default:
                     break;
@@ -202,18 +202,18 @@ namespace RecycleScrollView
 
             switch (checkDirection)
             {
-                case ScrollDirection.Vertical_UpToDown:
-                    isBeyoudEdge = baseRectPosition.y < viewportEdgeRectPosition.y;
-                    break;
-                case ScrollDirection.Vertical_DownToUp:
-                    isBeyoudEdge = baseRectPosition.y > viewportEdgeRectPosition.y;
-                    break;
-
                 case ScrollDirection.Horizontal_LeftToRight:
                     isBeyoudEdge = baseRectPosition.x > viewportEdgeRectPosition.x;
                     break;
                 case ScrollDirection.Horizontal_RightToLeft:
                     isBeyoudEdge = baseRectPosition.x < viewportEdgeRectPosition.x;
+                    break;
+
+                case ScrollDirection.Vertical_UpToDown:
+                    isBeyoudEdge = baseRectPosition.y < viewportEdgeRectPosition.y;
+                    break;
+                case ScrollDirection.Vertical_DownToUp:
+                    isBeyoudEdge = baseRectPosition.y > viewportEdgeRectPosition.y;
                     break;
                 default:
                     break;
@@ -244,15 +244,6 @@ namespace RecycleScrollView
 
                     switch (_scrollParam.scrollDirection)
                     {
-                        // Vertical
-                        case ScrollDirection.Vertical_UpToDown:
-                            content.localPosition += Vector3.down * removeSize;
-                            break;
-                        case ScrollDirection.Vertical_DownToUp:
-                            content.localPosition += Vector3.up * removeSize;
-                            break;
-
-                        // Horizontal
                         case ScrollDirection.Horizontal_LeftToRight:
                             content.localPosition += Vector3.right * removeSize;
                             break;
@@ -260,6 +251,13 @@ namespace RecycleScrollView
                             content.localPosition += Vector3.left * removeSize;
                             break;
                         default:
+                            break;
+
+                        case ScrollDirection.Vertical_UpToDown:
+                            content.localPosition += Vector3.down * removeSize;
+                            break;
+                        case ScrollDirection.Vertical_DownToUp:
+                            content.localPosition += Vector3.up * removeSize;
                             break;
                     }
                 }
@@ -304,20 +302,18 @@ namespace RecycleScrollView
                 // HACK Becuz I use a fixed pivot for content, so I can directly adjust local position
                 switch (_scrollParam.scrollDirection)
                 {
-                    // Vertical
-                    case ScrollDirection.Vertical_UpToDown:
-                        content.localPosition += Vector3.up * addSize;
-                        break;
-                    case ScrollDirection.Vertical_DownToUp:
-                        content.localPosition += Vector3.down * addSize;
-                        break;
-
-                    // Horizontal
                     case ScrollDirection.Horizontal_LeftToRight:
                         content.localPosition += Vector3.left * addSize;
                         break;
                     case ScrollDirection.Horizontal_RightToLeft:
                         content.localPosition += Vector3.right * addSize;
+                        break;
+
+                    case ScrollDirection.Vertical_UpToDown:
+                        content.localPosition += Vector3.up * addSize;
+                        break;
+                    case ScrollDirection.Vertical_DownToUp:
+                        content.localPosition += Vector3.down * addSize;
                         break;
                     default:
                         break;

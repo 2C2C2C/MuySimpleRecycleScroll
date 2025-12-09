@@ -16,14 +16,13 @@ namespace RecycleScrollView
         private bool _alwaysDrawGizmos;
         [SerializeField]
         private bool _enableLog = false;
-        [SerializeField]
-        private Vector2 _previewElementSize = 100f * Vector2.one;
 
         private void OnDrawGizmos()
         {
             if (_alwaysDrawGizmos)
             {
-                DrawGizmos();
+                DrawElementGizmos();
+                DrawDefaultJumpToSettingGizmos();
             }
         }
 
@@ -31,11 +30,12 @@ namespace RecycleScrollView
         {
             if (!_alwaysDrawGizmos)
             {
-                DrawGizmos();
+                DrawElementGizmos();
+                DrawDefaultJumpToSettingGizmos();
             }
         }
 
-        private void DrawGizmos()
+        private void DrawElementGizmos()
         {
             if (Application.isPlaying && null != m_dataSource && null != m_positionList)
             {
@@ -70,7 +70,7 @@ namespace RecycleScrollView
             {
                 int drawElementCount = Mathf.FloorToInt(360 / _internvalAngle);
                 RectTransform center = (null == _overrideRadialCenter) ? (RectTransform)transform : _overrideRadialCenter;
-                Vector3 selfWorldPos = center.position;
+                Vector3 centerWorldPos = center.position;
                 Matrix4x4 localToWorld = _elementContainer.localToWorldMatrix;
                 float radius = Mathf.Abs(_radius); // lul
                 float angle = _startAngle;
@@ -89,7 +89,7 @@ namespace RecycleScrollView
                     };
 
                     DrawWireRectGizmo(v3Pos, localToWorld, _previewElementSize, Gizmos.color);
-                    Gizmos.DrawLine(pos, selfWorldPos);
+                    Gizmos.DrawLine(pos, centerWorldPos);
                     DrawTextHandle(v3Pos, i.ToString(), localToWorld, gridIndexLableStyle);
                     angle += _antiClockwise ? _internvalAngle : -_internvalAngle;
                 }
@@ -131,6 +131,26 @@ namespace RecycleScrollView
                 };
             }
             Handles.Label(drawPosition, text, labelStyle);
+        }
+
+        private void DrawDefaultJumpToSettingGizmos()
+        {
+            RectTransform center = (null == _overrideRadialCenter) ? (RectTransform)transform : _overrideRadialCenter;
+            float angle = _jumpToAngle;
+            Vector3 v3Pos = new Vector3(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad), 0);
+            v3Pos *= _radius;
+            Vector3 pos = _elementContainer.TransformPoint(v3Pos);
+            Color prevColor = Gizmos.color;
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(pos, center.position);
+            Gizmos.color = prevColor;
+        }
+
+        private void OnValidate()
+        {
+            _startAngle %= 360f;
+            _jumpToAngle %= 360f;
+            _internvalAngle %= 360f;
         }
 
 #endif

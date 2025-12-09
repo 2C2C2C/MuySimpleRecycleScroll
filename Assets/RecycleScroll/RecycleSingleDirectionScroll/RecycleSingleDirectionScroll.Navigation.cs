@@ -112,19 +112,6 @@ namespace RecycleScrollView
                 bool doBreak = false;
                 switch (_scrollParam.scrollDirection)
                 {
-                    // Vertical
-                    case ScrollDirection.Vertical_UpToDown:
-                        headCheckRectPosition += Vector2.up * (size.y + spacing);
-                        content.localPosition += Vector3.up * (size.y + spacing);
-                        doBreak = headCheckRectPosition.y > headRectPosition.y;
-                        break;
-                    case ScrollDirection.Vertical_DownToUp:
-                        headCheckRectPosition += Vector2.down * (size.y + spacing);
-                        content.localPosition += Vector3.down * (size.y + spacing);
-                        doBreak = headCheckRectPosition.y < headRectPosition.y;
-                        break;
-
-                    // Horizontal
                     case ScrollDirection.Horizontal_LeftToRight:
                         headCheckRectPosition += Vector2.left * (size.x + spacing);
                         content.localPosition += Vector3.left * (size.x + spacing);
@@ -134,6 +121,17 @@ namespace RecycleScrollView
                         headCheckRectPosition += Vector2.right * (size.x + spacing);
                         content.localPosition += Vector3.right * (size.x + spacing);
                         doBreak = headCheckRectPosition.x > headRectPosition.x;
+                        break;
+
+                    case ScrollDirection.Vertical_UpToDown:
+                        headCheckRectPosition += Vector2.up * (size.y + spacing);
+                        content.localPosition += Vector3.up * (size.y + spacing);
+                        doBreak = headCheckRectPosition.y > headRectPosition.y;
+                        break;
+                    case ScrollDirection.Vertical_DownToUp:
+                        headCheckRectPosition += Vector2.down * (size.y + spacing);
+                        content.localPosition += Vector3.down * (size.y + spacing);
+                        doBreak = headCheckRectPosition.y < headRectPosition.y;
                         break;
                     default:
                         break;
@@ -414,19 +412,6 @@ namespace RecycleScrollView
                 bool doBreak = false;
                 switch (_scrollParam.scrollDirection)
                 {
-                    // Vertical
-                    case ScrollDirection.Vertical_UpToDown:
-                        headCheckRectPosition += Vector2.up * (size.y + spacing);
-                        localPosition += Vector3.up * (size.y + spacing);
-                        doBreak = headCheckRectPosition.y > headRectPosition.y;
-                        break;
-                    case ScrollDirection.Vertical_DownToUp:
-                        headCheckRectPosition += Vector2.down * (size.y + spacing);
-                        localPosition += Vector3.down * (size.y + spacing);
-                        doBreak = headCheckRectPosition.y < headRectPosition.y;
-                        break;
-
-                    // Horizontal
                     case ScrollDirection.Horizontal_LeftToRight:
                         headCheckRectPosition += Vector2.left * (size.x + spacing);
                         localPosition += Vector3.left * (size.x + spacing);
@@ -436,6 +421,17 @@ namespace RecycleScrollView
                         headCheckRectPosition += Vector2.right * (size.x + spacing);
                         localPosition += Vector3.right * (size.x + spacing);
                         doBreak = headCheckRectPosition.x > headRectPosition.x;
+                        break;
+
+                    case ScrollDirection.Vertical_UpToDown:
+                        headCheckRectPosition += Vector2.up * (size.y + spacing);
+                        localPosition += Vector3.up * (size.y + spacing);
+                        doBreak = headCheckRectPosition.y > headRectPosition.y;
+                        break;
+                    case ScrollDirection.Vertical_DownToUp:
+                        headCheckRectPosition += Vector2.down * (size.y + spacing);
+                        localPosition += Vector3.down * (size.y + spacing);
+                        doBreak = headCheckRectPosition.y < headRectPosition.y;
                         break;
                     default:
                         break;

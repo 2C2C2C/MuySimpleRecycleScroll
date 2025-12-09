@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
-using UnityMathf = UnityEngine.Mathf;
 using System.Collections.Generic;
 
 namespace RecycleScrollView
@@ -31,8 +30,8 @@ namespace RecycleScrollView
         private Action m_afterScrollrectUpdate;
 
         public bool IsVertical =>
-            ScrollDirection.Vertical_DownToUp == _dragContentScrollDirection ||
-            ScrollDirection.Vertical_UpToDown == _dragContentScrollDirection;
+            ScrollDirection.Vertical_UpToDown == _dragContentScrollDirection ||
+            ScrollDirection.Vertical_DownToUp == _dragContentScrollDirection;
         public bool IsHorizontal =>
             ScrollDirection.Horizontal_LeftToRight == _dragContentScrollDirection ||
             ScrollDirection.Horizontal_RightToLeft == _dragContentScrollDirection;
@@ -45,6 +44,11 @@ namespace RecycleScrollView
 
         public void Init(IRecycleScrollDataSource dataSource)
         {
+            if (null == dataSource)
+            {
+                return;
+            }
+
             if (null == m_dataSource)
             {
                 m_dataSource = dataSource;
@@ -134,23 +138,24 @@ namespace RecycleScrollView
             if (m_needUpdateThisFrame)
             {
                 Vector2 normalizedValue = _scrollRect.normalizedPosition;
-                float nextNormalizedValue;
-                if (IsVertical)
+                float nextNormalizedValue = _dragContentScrollDirection switch
                 {
-                    nextNormalizedValue = normalizedValue.y;
-                }
-                else if (IsHorizontal)
-                {
-                    nextNormalizedValue = normalizedValue.x;
-                }
-                else
-                {
-                    nextNormalizedValue = 0f;
-                }
-
-                m_normalizedProgress = 1f - Mathf.Clamp01(nextNormalizedValue);
+                    ScrollDirection.Horizontal_LeftToRight => normalizedValue.x,
+                    ScrollDirection.Horizontal_RightToLeft => 1f - normalizedValue.x,
+                    ScrollDirection.Vertical_UpToDown => 1f - normalizedValue.y,
+                    ScrollDirection.Vertical_DownToUp => normalizedValue.y,
+                    _ => 0f,
+                };
+                m_normalizedProgress = nextNormalizedValue;
                 ApplyScrollProcess();
             }
+        }
+
+        private void Awake()
+        {
+            _startAngle %= 360f;
+            _jumpToAngle %= 360f;
+            _internvalAngle %= 360f;
         }
 
         private void OnEnable()

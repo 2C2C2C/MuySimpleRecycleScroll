@@ -6,10 +6,14 @@ namespace RecycleScrollView
     public class RecycleRadialScrollElement : MonoBehaviour
     {
         /// <summary> The element index in the scroll content </summary>
+#if UNITY_EDITOR
         [SerializeField] // TODO This value should be NonSerialized but better to show it in inspector
+#endif
         private int m_elementIndex = -1;
         /// <summary> The actual data index in the scroll content </summary>
+#if UNITY_EDITOR
         [SerializeField] // TODO This value should be NonSerialized but better to show it in inspector
+#endif
         private int m_dataIndex = -1;
 
         private Vector2 m_size;
