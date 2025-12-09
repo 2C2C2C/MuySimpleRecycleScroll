@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 namespace RecycleScrollView
 {
+    [RequireComponent(typeof(UnityScrollRectExtended))]
     public partial class RecycleRadialScroll : MonoBehaviour, IRecycleScroll
     {
         [Serializable]
@@ -18,26 +19,27 @@ namespace RecycleScrollView
         }
 
         [SerializeField]
-        private ScrollRect _scroller;
+        private UnityScrollRectExtended _scrollRect;
         [SerializeField]
-        private RadialLayout _radiaLayout;
+        private ReceiveScrollPositionType _scrollType;
+        /// <summary> If it is null, the transform of this script will be the center</summary>
+        [SerializeField]
+        private RectTransform _overrideRadialCenter;
+        [SerializeField]
+        private RectTransform _elementContainer;
 
-       
         /// <summary>
         /// When normalized postion is 0
         /// </summary>
         [SerializeField]
         private float _totalRotateAngle = 0f;
 
-        [SerializeField]
-        private ReceiveScrollPositionType _scrollType;
-
-        [NonSerialized]
         private float m_normalizedProgress;
 
         private IRecycleScrollDataSource m_dataSource;
 
         private UnityAction<Vector2> m_onScrollerValueChanged;
+        private Action m_afterScrollrectUpdate;
 
         public void UnInit()
         {
@@ -46,7 +48,7 @@ namespace RecycleScrollView
 
         public void Init(IRecycleScrollDataSource dataSource)
         {
-            throw new NotImplementedException();
+
         }
 
         public void AddElementTotail()
@@ -111,22 +113,40 @@ namespace RecycleScrollView
                 nextAngle %= 360f;
                 nextAngle += 360f;
             }
-            _radiaLayout.ChangeStartAngle(nextAngle % 360f);
+            // _radiaLayout.ChangeStartAngle(nextAngle % 360f);
         }
 
-        private void Awake()
+        private void AfterScrollRectUpdate()
         {
-            m_onScrollerValueChanged = new UnityAction<Vector2>(OnScrollerValueChanged);
+
         }
 
         private void OnEnable()
         {
-            _scroller.onValueChanged.AddListener(m_onScrollerValueChanged);
+            if (null == m_onScrollerValueChanged)
+            {
+                m_onScrollerValueChanged = new UnityAction<Vector2>(OnScrollerValueChanged);
+            }
+            _scrollRect.onValueChanged.AddListener(m_onScrollerValueChanged);
+
+            if (null == m_afterScrollrectUpdate)
+            {
+                m_afterScrollrectUpdate = new Action(AfterScrollRectUpdate);
+            }
+            _scrollRect.AfterLateUpdate += m_afterScrollrectUpdate;
         }
 
         private void OnDisable()
         {
-            _scroller.onValueChanged.RemoveListener(m_onScrollerValueChanged);
+            if (null != m_onScrollerValueChanged)
+            {
+                _scrollRect.onValueChanged.RemoveListener(m_onScrollerValueChanged);
+            }
+
+            if (null != m_afterScrollrectUpdate)
+            {
+                _scrollRect.AfterLateUpdate -= m_afterScrollrectUpdate;
+            }
         }
 
     }
