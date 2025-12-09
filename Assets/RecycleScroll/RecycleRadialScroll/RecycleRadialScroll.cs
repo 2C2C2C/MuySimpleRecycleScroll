@@ -10,30 +10,19 @@ namespace RecycleScrollView
     [RequireComponent(typeof(UnityScrollRectExtended))]
     public partial class RecycleRadialScroll : MonoBehaviour, IRecycleScroll
     {
-        [Serializable]
-        public enum ReceiveScrollPositionType
-        {
-            None = 0,
-            Vertical = 1,
-            Horizontal = 2,
-        }
-
         [SerializeField]
         private UnityScrollRectExtended _scrollRect;
-        [SerializeField]
-        private ReceiveScrollPositionType _scrollType;
         /// <summary> If it is null, the transform of this script will be the center</summary>
         [SerializeField]
         private RectTransform _overrideRadialCenter;
         [SerializeField]
         private RectTransform _elementContainer;
 
-        /// <summary>
-        /// When normalized postion is 0
-        /// </summary>
         [SerializeField]
-        private float _totalRotateAngle = 0f;
+        private ScrollDirection _dragContentScrollDirection;
 
+        private bool m_needUpdateThisFrame = false;
+        private float m_totalRotateAngle = 0f;
         private float m_normalizedProgress;
 
         private IRecycleScrollDataSource m_dataSource;
@@ -41,84 +30,127 @@ namespace RecycleScrollView
         private UnityAction<Vector2> m_onScrollerValueChanged;
         private Action m_afterScrollrectUpdate;
 
+        public bool IsVertical =>
+            ScrollDirection.Vertical_DownToUp == _dragContentScrollDirection ||
+            ScrollDirection.Vertical_UpToDown == _dragContentScrollDirection;
+        public bool IsHorizontal =>
+            ScrollDirection.Horizontal_LeftToRight == _dragContentScrollDirection ||
+            ScrollDirection.Horizontal_RightToLeft == _dragContentScrollDirection;
+
         public void UnInit()
         {
-            throw new NotImplementedException();
+            m_totalRotateAngle = 0;
+            m_dataSource = null;
         }
 
         public void Init(IRecycleScrollDataSource dataSource)
         {
-
+            if (null == m_dataSource)
+            {
+                m_dataSource = dataSource;
+                ApplyLayoutSetting();
+                AdjustCachedElements();
+                OnDataCountChanged(0, m_dataSource.DataElementCount);
+                m_needUpdateThisFrame = true;
+            }
+            else
+            {
+                // Already regist
+            }
         }
 
         public void AddElementTotail()
         {
-            throw new NotImplementedException();
+
         }
 
         public void AddElementsToTail(int count)
         {
-            throw new NotImplementedException();
+
         }
 
         public void InsertElement(int dataIndex)
         {
-            throw new NotImplementedException();
+
         }
 
         public void InsertElements(int dataIndex, int count)
         {
-            throw new NotImplementedException();
+
         }
 
         public void InsertElements(IReadOnlyList<int> sortedDataIndexList)
         {
-            throw new NotImplementedException();
+
         }
 
         public void RemoveElement(int dataIndex)
         {
-            throw new NotImplementedException();
+
         }
 
         public void RemoveElements(int dataIndex, int count)
         {
-            throw new NotImplementedException();
+
         }
 
         public void RemoveElements(IReadOnlyList<int> sortedDataIndexList)
         {
-            throw new NotImplementedException();
         }
 
         public void UpdateElement(int dataIndex)
         {
-            throw new NotImplementedException();
+        }
+
+        private void OnDataCountChanged(int prev, int next)
+        {
+            m_totalRotateAngle = _internvalAngle * (next - 1);
+            // Adjust scroll content size
+            RectTransform scrollContent = _scrollRect.content;
+            RectTransform viewport = _scrollRect.viewport;
+
+            float radius = _radius;
+            float scrollLength = radius * m_totalRotateAngle * Mathf.Deg2Rad;
+            if (IsVertical)
+            {
+                scrollLength += viewport.rect.size.y;
+                scrollContent.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, scrollLength);
+            }
+            else if (IsHorizontal)
+            {
+                scrollLength += viewport.rect.size.x;
+                scrollContent.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, scrollLength);
+            }
+            m_needUpdateThisFrame = true;
         }
 
         private void OnScrollerValueChanged(Vector2 normalizedValue)
         {
-            float nextNormalizedValue = _scrollType switch
-            {
-                ReceiveScrollPositionType.Horizontal => normalizedValue.x,
-                ReceiveScrollPositionType.Vertical => normalizedValue.y,
-                _ => 0f,
-            };
-
-            m_normalizedProgress = nextNormalizedValue;
-            float nextAngle = _startAngle + _totalRotateAngle * (1f - nextNormalizedValue);
-            //Debug.Log(nextAngle);
-            if (0 > nextAngle)
-            {
-                nextAngle %= 360f;
-                nextAngle += 360f;
-            }
-            // _radiaLayout.ChangeStartAngle(nextAngle % 360f);
+            m_needUpdateThisFrame = true;
         }
 
         private void AfterScrollRectUpdate()
         {
+            if (m_needUpdateThisFrame)
+            {
+                Vector2 normalizedValue = _scrollRect.normalizedPosition;
+                float nextNormalizedValue;
+                if (IsVertical)
+                {
+                    nextNormalizedValue = normalizedValue.y;
+                }
+                else if (IsHorizontal)
+                {
+                    nextNormalizedValue = normalizedValue.x;
+                }
+                else
+                {
+                    nextNormalizedValue = 0f;
+                }
 
+                m_normalizedProgress = 1f - Mathf.Clamp01(nextNormalizedValue);
+                ApplyScrollProcess();
+            }
         }
 
         private void OnEnable()

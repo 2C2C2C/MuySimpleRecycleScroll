@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.Extend;
-using ScrollDirection = RecycleScrollView.SingleDirectionScrollParam.ScrollDirection;
 using ScrollbarDirection = UnityEngine.UI.Scrollbar.Direction;
 using System;
 

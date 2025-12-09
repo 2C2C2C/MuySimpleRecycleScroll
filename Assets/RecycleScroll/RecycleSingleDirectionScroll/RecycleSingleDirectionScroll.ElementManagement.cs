@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI.Extend;
-using ScrollDirection = RecycleScrollView.SingleDirectionScrollParam.ScrollDirection;
 
 namespace RecycleScrollView
 {
