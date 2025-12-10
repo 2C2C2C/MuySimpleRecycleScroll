@@ -7,6 +7,51 @@ namespace RecycleScrollView
     {
         private const int INVALID_INDEX = -1;
 
+        public int GetCurrentShowingElementIndexTailBound()
+        {
+            int result = INVALID_INDEX;
+            int validMaxIndex = m_dataSource.DataElementCount - 1;
+            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+            {
+                RecycleRadialScrollElement element = m_currentUsingElements[i];
+                int elementIndex = element.ElementIndex;
+                if (INVALID_INDEX == result)
+                {
+                    if (element.IsElementShowing && INVALID_INDEX != elementIndex && elementIndex <= validMaxIndex)
+                    {
+                        result = elementIndex;
+                    }
+                }
+                else
+                {
+                    if (element.IsElementShowing && INVALID_INDEX != elementIndex && elementIndex <= validMaxIndex)
+                    {
+                        result = elementIndex;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            return result;
+        }
+
+        public int GetCurrentShowingElementIndexHeadBound()
+        {
+            int validMaxIndex = m_dataSource.DataElementCount - 1;
+            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+            {
+                RecycleRadialScrollElement element = m_currentUsingElements[i];
+                int elementIndex = element.ElementIndex;
+                if (element.IsElementShowing && INVALID_INDEX != elementIndex && elementIndex <= validMaxIndex)
+                {
+                    return elementIndex;
+                }
+            }
+            return -1;
+        }
+
         private bool IsElementRectInterestedWithViewport(Vector3 elementWorldPos, Vector2 elementSize)
         {
             RectTransform viewport = _scrollRect.viewport;
@@ -60,7 +105,7 @@ namespace RecycleScrollView
                 return INVALID_INDEX;
             }
 
-            int result = _reverseArrangment ?
+            int result = _reverseArrangement ?
                 dataCount - index - 1 :
                 index;
             return result;

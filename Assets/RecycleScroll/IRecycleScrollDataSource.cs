@@ -11,11 +11,11 @@ namespace RecycleScrollView
         /// Let the data source init the element when it is added to the list, index may be -1, if the element is not used yet
         /// </summary>
         /// <param name="elementTransform"></param>
-        /// <param name="index"> Can be -1, if the element is not used yet</param>
-        void InitElement(RectTransform elementTransform, int index);
+        /// <param name="dataIndex"> Can be -1, if the element is not used yet</param>
+        void InitElement(RectTransform elementTransform, int dataIndex);
         void UnInitElement(RectTransform elementTransform);
 
         /// <summary> Used to (force)update view (basically uninit then init again should be enough) </summary>
-        void ChangeElementIndex(RectTransform elementTransform, int prevIndex, int nextIndex);
+        void ChangeElementIndex(RectTransform elementTransform, int prevDataIndex, int nextDataIndex);
     }
 }

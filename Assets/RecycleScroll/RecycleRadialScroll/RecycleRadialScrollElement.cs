@@ -19,6 +19,7 @@ namespace RecycleScrollView
         private Vector2 m_size;
         private CanvasGroup m_canvasGroup;
         private RectTransform m_rectTransform;
+        private bool m_isShowing = false;
 
         public RectTransform ElementTransform
         {
@@ -33,6 +34,7 @@ namespace RecycleScrollView
         }
         public int ElementIndex => m_elementIndex;
         public int DataIndex => m_dataIndex;
+        public bool IsElementShowing => m_isShowing;
 
         public void SetSize(Vector2 size)
         {
@@ -51,14 +53,16 @@ namespace RecycleScrollView
         {
             m_canvasGroup.alpha = 1f;
             m_canvasGroup.interactable =
-            m_canvasGroup.blocksRaycasts = true;
+            m_canvasGroup.blocksRaycasts =
+            m_isShowing = true;
         }
 
         public void HideElement()
         {
             m_canvasGroup.alpha = 0f;
             m_canvasGroup.interactable =
-            m_canvasGroup.blocksRaycasts = false;
+            m_canvasGroup.blocksRaycasts =
+            m_isShowing = false;
         }
 
         private void Awake()

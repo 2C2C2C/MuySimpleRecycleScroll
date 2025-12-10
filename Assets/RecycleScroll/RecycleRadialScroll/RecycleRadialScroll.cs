@@ -59,51 +59,152 @@ namespace RecycleScrollView
             }
             else
             {
-                // Already regist
+                // Already regist, Log Error here
             }
         }
 
         public void AddElementTotail()
         {
-
+            AddElementsToTail(1);
         }
 
         public void AddElementsToTail(int count)
         {
-
+            // HACK May cause issue at some point
+            OnDataCountChanged(0, m_dataSource.DataElementCount);
+            m_needUpdateThisFrame = true;
         }
 
         public void InsertElement(int dataIndex)
         {
-
+            InsertElements(dataIndex, 1);
         }
 
         public void InsertElements(int dataIndex, int count)
         {
+            if (0 == m_currentUsingElements.Count || 0 == count)
+            {
 
+                OnDataCountChanged(0, m_dataSource.DataElementCount);
+                return; // Will handle this case in AdjustElements from LateUpdate
+            }
+
+            int prevDataCount = m_dataSource.DataElementCount - 1;
+            int insertElementIndex = ElementIndexDataIndex2WayConvert(dataIndex, prevDataCount);
+            if (_reverseArrangement)
+            {
+                // Convert to non-reverse case
+                insertElementIndex -= count - 1;
+            }
+
+            int indexTailBound = GetCurrentShowingElementIndexTailBound();
+            if (insertElementIndex <= indexTailBound) // Need to refresh view for current using elements
+            {
+                for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+                {
+                    RecycleRadialScrollElement element = m_currentUsingElements[i];
+                    if (element.DataIndex >= dataIndex)
+                    {
+                        // Refresh element
+                        ForceChangeElementIndex(element, element.ElementIndex);
+                    }
+                }
+            }
+
+            OnDataCountChanged(0, m_dataSource.DataElementCount);
+            m_needUpdateThisFrame = true;
         }
 
         public void InsertElements(IReadOnlyList<int> sortedDataIndexList)
         {
-
+            InsertElements(sortedDataIndexList[0], sortedDataIndexList.Count); // HACK
         }
 
         public void RemoveElement(int dataIndex)
         {
-
+            RemoveElements(dataIndex, 1);
         }
 
         public void RemoveElements(int dataIndex, int count)
         {
+            if (0 == m_currentUsingElements.Count)
+            {
 
+                OnDataCountChanged(0, m_dataSource.DataElementCount);
+                return;
+            }
+            if (dataIndex + 1 - count < 0)
+            {
+                Debug.LogError($"Remove data From index {dataIndex} count {count} will caused out of range issue");
+                return;
+            }
+
+            int currentDataCount = m_dataSource.DataElementCount;
+            int prevDataCount = currentDataCount - count;
+            int removeElementStartIndex = ElementIndexDataIndex2WayConvert(dataIndex, prevDataCount);
+            if (_reverseArrangement)
+            {
+                // Convert to non-reverse case
+                removeElementStartIndex -= count - 1;
+            }
+
+            int indexTailBound = GetCurrentShowingElementIndexTailBound();
+            int fallbackElementIndex = 0;
+            bool canApplyFallbackIndex = true;
+            if (removeElementStartIndex <= indexTailBound)
+            {
+                for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+                {
+                    RecycleRadialScrollElement element = m_currentUsingElements[i];
+                    int elementIndex = element.ElementIndex;
+                    int newElementIndex = elementIndex - count;
+                    if (currentDataCount - 1 >= newElementIndex && 0 <= newElementIndex)
+                    {
+                        // Valid element
+                        ForceChangeElementIndex(element, newElementIndex);
+                        if (0 == i)
+                        {
+                            canApplyFallbackIndex = false;
+                        }
+                    }
+                    else
+                    {
+                        if (currentDataCount - 1 >= fallbackElementIndex && canApplyFallbackIndex)
+                        {
+                            // Edge case
+                            ForceChangeElementIndex(element, fallbackElementIndex);
+                            ++fallbackElementIndex;
+                        }
+                        else
+                        {
+                            // Invalid element
+                            ForceChangeElementIndex(element, INVALID_INDEX);
+                        }
+                    }
+                }
+            }
+
+            OnDataCountChanged(0, m_dataSource.DataElementCount);
+            m_needUpdateThisFrame = true;
         }
 
         public void RemoveElements(IReadOnlyList<int> sortedDataIndexList)
         {
+            RemoveElements(sortedDataIndexList[0], sortedDataIndexList.Count); // Hack
         }
 
         public void UpdateElement(int dataIndex)
         {
+            for (int i = 0, length = m_currentUsingElements.Count; i < length; i++)
+            {
+                RecycleRadialScrollElement element = m_currentUsingElements[i];
+                if (element.DataIndex == dataIndex)
+                {
+                    m_dataSource.UnInitElement(element.ElementTransform);
+                    m_dataSource.InitElement(element.ElementTransform, dataIndex);
+                    return;
+                }
+            }
         }
 
         private void OnDataCountChanged(int prev, int next)

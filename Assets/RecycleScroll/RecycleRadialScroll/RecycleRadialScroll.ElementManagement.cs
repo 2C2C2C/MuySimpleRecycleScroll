@@ -32,7 +32,7 @@ namespace RecycleScrollView
         [SerializeField]
         private bool _antiClockwise;
         [SerializeField]
-        private bool _reverseArrangment = false;
+        private bool _reverseArrangement = false;
 
         [SerializeField]
         private Vector2 _previewElementSize = 100f * Vector2.one;
@@ -40,7 +40,7 @@ namespace RecycleScrollView
         private bool _applyRotationToElement = false;
 
         private List<ElementPositionData> m_positionList;
-        private List<RecycleRadialScrollElement> m_usingElements;
+        private List<RecycleRadialScrollElement> m_currentUsingElements;
 
         private void ApplyLayoutSetting()
         {
@@ -173,27 +173,27 @@ namespace RecycleScrollView
 
         private void AdjustCachedElements()
         {
-            if (null == m_usingElements)
+            if (null == m_currentUsingElements)
             {
-                m_usingElements = new List<RecycleRadialScrollElement>();
+                m_currentUsingElements = new List<RecycleRadialScrollElement>();
             }
 
             RectTransform container = (null == _overrideRadialCenter) ? (RectTransform)transform : _overrideRadialCenter;
             int expectedCount = Mathf.FloorToInt(360 / _internvalAngle);
-            int currentCount = m_usingElements.Count;
+            int currentCount = m_currentUsingElements.Count;
             while (currentCount < expectedCount)
             {
                 RectTransform addedTransform = m_dataSource.RequestElement(container);
                 if (addedTransform.TryGetComponent<RecycleRadialScrollElement>(out RecycleRadialScrollElement addedElement))
                 {
-                    m_usingElements.Add(addedElement);
+                    m_currentUsingElements.Add(addedElement);
                 }
                 ++currentCount;
             }
             while (currentCount > expectedCount)
             {
-                RecycleRadialScrollElement element = m_usingElements[--currentCount];
-                m_usingElements.RemoveAt(currentCount);
+                RecycleRadialScrollElement element = m_currentUsingElements[--currentCount];
+                m_currentUsingElements.RemoveAt(currentCount);
                 m_dataSource.ReturnElement(element.ElementTransform);
             }
         }
@@ -223,16 +223,16 @@ namespace RecycleScrollView
                     return x.ElementIndex.CompareTo(y.ElementIndex);
                 });
             }
-            m_usingElements.Sort(s_elementSortComparison);
+            m_currentUsingElements.Sort(s_elementSortComparison);
 
             for (int i = 0, length = m_positionList.Count; i < length; i++)
             {
                 ElementPositionData positionData = m_positionList[i];
-                RecycleRadialScrollElement element = m_usingElements[i];
+                RecycleRadialScrollElement element = m_currentUsingElements[i];
                 element.ElementTransform.position = positionData.worldPosition;
                 if (element.ElementIndex != positionData.elmentIndex)
                 {
-                    ChangeElementIndex(element, positionData.elmentIndex);
+                    ForceChangeElementIndex(element, positionData.elmentIndex);
                 }
                 if (positionData.canShow)
                 {
@@ -267,7 +267,6 @@ namespace RecycleScrollView
                                 element.ElementTransform.right = -centerToElement.normalized;
                             }
                         }
-
                     }
                 }
                 else
@@ -277,10 +276,11 @@ namespace RecycleScrollView
             }
         }
 
-        private void ChangeElementIndex(RecycleRadialScrollElement element, int elementIndex)
+        /// <summary> Also refresh element view </summary>
+        private void ForceChangeElementIndex(RecycleRadialScrollElement element, int elementIndex)
         {
-            m_dataSource.ChangeElementIndex(element.ElementTransform, ElementIndexDataIndex2WayConvert(element.ElementIndex), ElementIndexDataIndex2WayConvert(elementIndex));
             element.SetIndex(elementIndex, ElementIndexDataIndex2WayConvert(elementIndex));
+            m_dataSource.ChangeElementIndex(element.ElementTransform, ElementIndexDataIndex2WayConvert(element.ElementIndex), ElementIndexDataIndex2WayConvert(elementIndex));
 
 #if UNITY_EDITOR
 
