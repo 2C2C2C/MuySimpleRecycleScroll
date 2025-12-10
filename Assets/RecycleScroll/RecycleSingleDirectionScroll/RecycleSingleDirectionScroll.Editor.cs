@@ -7,13 +7,14 @@ namespace RecycleScrollView
 {
     public partial class RecycleSingleDirectionScroll
     {
-#if UNITY_EDITOR
-
         [Header("Debug params")]
         [SerializeField]
-        private bool _alwaysDrawGizmos;
-        [SerializeField]
         private bool _enableLog = false;
+
+#if UNITY_EDITOR
+
+        [SerializeField]
+        private bool _alwaysDrawGizmos;
 
         private void OnDrawGizmos()
         {

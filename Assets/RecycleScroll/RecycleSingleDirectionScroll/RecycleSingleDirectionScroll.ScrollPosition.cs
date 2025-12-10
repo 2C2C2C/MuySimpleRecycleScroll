@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.Extend;
-using ScrollDirection = RecycleScrollView.SingleDirectionScrollParam.ScrollDirection;
 using ScrollbarDirection = UnityEngine.UI.Scrollbar.Direction;
 using System;
 
@@ -61,10 +60,10 @@ namespace RecycleScrollView
             {
                 ScrollbarDirection barDirection = _scrollParam.scrollDirection switch
                 {
-                    ScrollDirection.Vertical_UpToDown => ScrollbarDirection.BottomToTop,
-                    ScrollDirection.Vertical_DownToUp => ScrollbarDirection.TopToBottom,
                     ScrollDirection.Horizontal_LeftToRight => ScrollbarDirection.RightToLeft,
                     ScrollDirection.Horizontal_RightToLeft => ScrollbarDirection.LeftToRight,
+                    ScrollDirection.Vertical_UpToDown => ScrollbarDirection.BottomToTop,
+                    ScrollDirection.Vertical_DownToUp => ScrollbarDirection.TopToBottom,
                     _ => ScrollbarDirection.BottomToTop
                 };
                 _scrollBar.SetDirection(barDirection, false);
@@ -260,19 +259,20 @@ namespace RecycleScrollView
             Vector2 viewportExpectedLocalPosition = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, convertedNormalizedRectPosition);
             float deltaToExpectedPosition = 0f;
             bool greaterIfPositive = false;
-            if (IsVertical)
-            {
-                deltaToExpectedPosition = viewportExpectedLocalPosition.y - elementTempLocalPositionInViewport.y;
-                // For UpToDown, negative delta means "greater than base progress"
-                // For DownToUp, positive delta means "greater than base progress"
-                greaterIfPositive = ScrollDirection.Vertical_DownToUp == _scrollParam.scrollDirection;
-            }
-            else if (IsHorizontal)
+
+            if (IsHorizontal)
             {
                 deltaToExpectedPosition = viewportExpectedLocalPosition.x - elementTempLocalPositionInViewport.x;
                 // For LeftToRight, positive delta means "greater than base progress"
                 // For RightToLeft, negative delta means "greater than base progress"
                 greaterIfPositive = ScrollDirection.Horizontal_LeftToRight == _scrollParam.scrollDirection;
+            }
+            else if (IsVertical)
+            {
+                deltaToExpectedPosition = viewportExpectedLocalPosition.y - elementTempLocalPositionInViewport.y;
+                // For UpToDown, negative delta means "greater than base progress"
+                // For DownToUp, positive delta means "greater than base progress"
+                greaterIfPositive = ScrollDirection.Vertical_DownToUp == _scrollParam.scrollDirection;
             }
 
             if (Mathf.Approximately(0f, deltaToExpectedPosition))

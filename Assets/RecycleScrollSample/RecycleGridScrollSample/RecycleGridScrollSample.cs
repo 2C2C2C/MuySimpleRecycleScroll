@@ -41,7 +41,7 @@ namespace RecycleScrollView.Sample
         {
             m_dataList.Clear();
             m_dataList.AddRange(dataList);
-            _gridScroll.Uninit();
+            _gridScroll.UnInit();
             _gridScroll.Init(this);
         }
 

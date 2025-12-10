@@ -5,7 +5,12 @@ namespace RecycleScrollView
     /// <summary> Some basic add/remove methods </summary>
     public interface IRecycleScroll
     {
+        public void Init(IRecycleScrollDataSource dataSource);
+        public void UnInit();
+
+        /// <summary> When added to data list's tail </summary>
         public void AddElementTotail();
+        /// <summary> When added to data list's tail </summary>
         public void AddElementsToTail(int count);
 
         /// <param name="dataIndex"> -1 means add element to the top </param>

@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.Extend;
-using ScrollDirection = RecycleScrollView.SingleDirectionScrollParam.ScrollDirection;
 
 namespace RecycleScrollView
 {
@@ -236,10 +235,10 @@ namespace RecycleScrollView
         {
             Vector2 result = scrollDirection switch
             {
-                ScrollDirection.Vertical_UpToDown => Vector2.down,
-                ScrollDirection.Vertical_DownToUp => Vector2.up,
                 ScrollDirection.Horizontal_LeftToRight => Vector2.right,
                 ScrollDirection.Horizontal_RightToLeft => Vector2.left,
+                ScrollDirection.Vertical_UpToDown => Vector2.down,
+                ScrollDirection.Vertical_DownToUp => Vector2.up,
                 _ => Vector2.zero,
             };
             return result;
@@ -257,17 +256,17 @@ namespace RecycleScrollView
 
                 switch (_scrollParam.scrollDirection)
                 {
-                    case ScrollDirection.Vertical_UpToDown:
-                        result.y = Mathf.Clamp(result.y, edgeHeadLocalPos.y, float.MaxValue);
-                        break;
-                    case ScrollDirection.Vertical_DownToUp:
-                        result.y = Mathf.Clamp(result.y, float.MinValue, edgeHeadLocalPos.y);
-                        break;
                     case ScrollDirection.Horizontal_LeftToRight:
                         result.x = Mathf.Clamp(result.x, float.MinValue, edgeHeadLocalPos.x);
                         break;
                     case ScrollDirection.Horizontal_RightToLeft:
                         result.x = Mathf.Clamp(result.x, edgeHeadLocalPos.x, float.MaxValue);
+                        break;
+                    case ScrollDirection.Vertical_UpToDown:
+                        result.y = Mathf.Clamp(result.y, edgeHeadLocalPos.y, float.MaxValue);
+                        break;
+                    case ScrollDirection.Vertical_DownToUp:
+                        result.y = Mathf.Clamp(result.y, float.MinValue, edgeHeadLocalPos.y);
                         break;
                     default:
                         break;
@@ -294,20 +293,6 @@ namespace RecycleScrollView
                 float delta;
                 switch (_scrollParam.scrollDirection)
                 {
-                    case ScrollDirection.Vertical_UpToDown:
-                        delta = contentTailRectPosition.y - viewportTailRectPosition.y;
-                        if (0f < delta)
-                        {
-                            result.y -= delta;
-                        }
-                        break;
-                    case ScrollDirection.Vertical_DownToUp:
-                        delta = contentTailRectPosition.y - viewportTailRectPosition.y;
-                        if (0f < delta)
-                        {
-                            result.y -= delta;
-                        }
-                        break;
                     case ScrollDirection.Horizontal_LeftToRight:
                         delta = contentTailRectPosition.x - viewportTailRectPosition.x;
                         if (0f > delta)
@@ -320,6 +305,21 @@ namespace RecycleScrollView
                         if (0f < delta)
                         {
                             result.x -= delta;
+                        }
+                        break;
+
+                    case ScrollDirection.Vertical_UpToDown:
+                        delta = contentTailRectPosition.y - viewportTailRectPosition.y;
+                        if (0f < delta)
+                        {
+                            result.y -= delta;
+                        }
+                        break;
+                    case ScrollDirection.Vertical_DownToUp:
+                        delta = contentTailRectPosition.y - viewportTailRectPosition.y;
+                        if (0f < delta)
+                        {
+                            result.y -= delta;
                         }
                         break;
                     default:
