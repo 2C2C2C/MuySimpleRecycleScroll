@@ -24,7 +24,9 @@ namespace RecycleScrollView.Sample
         [SerializeField, Range(0, 100)]
         private int _removeCount = 1;
 
-        public int DataElementCount => _startDataCount;
+        private int m_currentDataCount = 0;
+
+        public int DataElementCount => m_currentDataCount;
 
         public RectTransform RequestElement(RectTransform parent)
         {
@@ -64,55 +66,32 @@ namespace RecycleScrollView.Sample
 
         private void Start()
         {
+            m_currentDataCount = _startDataCount;
             _scroll.Init(this);
         }
 
-        [ContextMenu(nameof(DoJumpToTest))]
-        private void DoJumpToTest()
+        [ContextMenu(nameof(JumpToData))]
+        private void JumpToData()
         {
             _scroll.JumpToByDataIndex(_jumpToDataIndex);
         }
 
-        [ContextMenu(nameof(DoInsertTest))]
-        private void DoInsertTest()
+        [ContextMenu(nameof(InsertData))]
+        private void InsertData()
         {
-            if (0 == _insertCount)
+            if (0 >= _insertCount)
             {
                 return;
             }
 
-            // if (-1 >= _insertIndex) // Add to tail
-            // {
-            //     if (1 == _insertCount)
-            //     {
-            //         m_elementSizeList.Add(UnityRandom.Range(_sizeMin, _sizeMax));
-            //         _scrollController.AddElementTotail();
-            //     }
-            //     else
-            //     {
-            //         for (int i = 0; i < _insertCount; i++)
-            //         {
-            //             m_elementSizeList.Add(UnityRandom.Range(_sizeMin, _sizeMax));
-            //         }
-            //         _scrollController.AddElementsToTail(_insertCount);
-            //     }
-            // }
-            // else if (m_elementSizeList.Count - 1 >= _insertIndex) // Insert
-            // {
-            //     List<float> toAdd = new List<float>(_insertCount);
-            //     for (int i = 0; i < _insertCount; i++)
-            //     {
-            //         toAdd.Add(UnityRandom.Range(_sizeMin, _sizeMax));
-            //     }
-            //     m_elementSizeList.InsertRange(_insertIndex, toAdd);
-            //     _scrollController.InsertElements(_insertIndex, _insertCount);
-            // }
+            m_currentDataCount += _insertCount;
+            _scroll.InsertElements(_insertIndex, _insertCount);
         }
 
-        [ContextMenu(nameof(DoRemoveTest))]
-        private void DoRemoveTest()
+        [ContextMenu(nameof(RemoveData))]
+        private void RemoveData()
         {
-            if (0 == _removeCount)
+            if (0 >= _removeCount)
             {
                 return;
             }
@@ -121,9 +100,8 @@ namespace RecycleScrollView.Sample
                 LogHelper.LogError($"Out of range");
                 return;
             }
-
-            // m_elementSizeList.RemoveRange(_removeIndex, _removeCount);
-            // _scrollController.RemoveElements(_removeIndex, _removeCount);
+            m_currentDataCount += _removeCount;
+            _scroll.RemoveElements(_removeIndex, _removeCount);
         }
 
 

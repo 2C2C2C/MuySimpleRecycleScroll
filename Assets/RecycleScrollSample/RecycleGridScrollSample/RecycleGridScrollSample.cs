@@ -85,8 +85,14 @@ namespace RecycleScrollView.Sample
             }
         }
 
-        [ContextMenu(nameof(DoInsertRange))]
-        private void DoInsertRange()
+        [ContextMenu(nameof(JumpToData))]
+        private void JumpToData()
+        {
+            _gridScroll.JumpTo(_jumpToIndex);
+        }
+
+        [ContextMenu(nameof(InsertData))]
+        private void InsertData()
         {
             if (0 >= _insertCount)
             {
@@ -110,8 +116,8 @@ namespace RecycleScrollView.Sample
             }
         }
 
-        [ContextMenu(nameof(DoRemoveRange))]
-        private void DoRemoveRange()
+        [ContextMenu(nameof(RemoveData))]
+        private void RemoveData()
         {
             int dataCount = DataElementCount;
             if (_removeIndex + _removeCount - 1 <= dataCount - 1)
@@ -119,12 +125,6 @@ namespace RecycleScrollView.Sample
                 m_dataList.RemoveRange(_removeIndex, _removeCount);
                 _gridScroll.RemoveElements(_removeIndex, _removeCount);
             }
-        }
-
-        [ContextMenu(nameof(DoJumpTo))]
-        private void DoJumpTo()
-        {
-            _gridScroll.JumpTo(_jumpToIndex);
         }
 
         private void Awake()

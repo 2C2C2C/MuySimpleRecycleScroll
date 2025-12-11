@@ -16,6 +16,11 @@ namespace RecycleScrollView
 
         public void JumpToByElementIndex(int elementIndex)
         {
+            if (_enableLog)
+            {
+                Debug.Log($"RecycleRadialScroll JumpToByElementIndex: {elementIndex}");
+            }
+            
             int dataCount = m_dataSource.DataElementCount;
             if (0 > elementIndex || dataCount - 1 < elementIndex)
             {

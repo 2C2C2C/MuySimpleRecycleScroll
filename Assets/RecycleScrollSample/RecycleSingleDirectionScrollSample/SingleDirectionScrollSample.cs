@@ -116,14 +116,14 @@ namespace RecycleScrollView.Sample
             _scrollController.Init(this);
         }
 
-        [ContextMenu(nameof(DoJumpToTest))]
-        private void DoJumpToTest()
+        [ContextMenu(nameof(JumpToData))]
+        private void JumpToData()
         {
             _scrollController.JumpToElementInstant(_jumpToTestIndex);
         }
 
-        [ContextMenu(nameof(DoInsertTest))]
-        private void DoInsertTest()
+        [ContextMenu(nameof(InsertData))]
+        private void InsertData()
         {
             if (0 == _insertCount)
             {
@@ -158,8 +158,8 @@ namespace RecycleScrollView.Sample
             }
         }
 
-        [ContextMenu(nameof(DoRemoveTest))]
-        private void DoRemoveTest()
+        [ContextMenu(nameof(RemoveData))]
+        private void RemoveData()
         {
             if (0 == _removeCount)
             {

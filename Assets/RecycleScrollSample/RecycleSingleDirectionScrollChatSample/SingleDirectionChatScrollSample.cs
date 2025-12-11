@@ -48,18 +48,25 @@ namespace RecycleScrollView.Sample
         [SerializeField]
         private ScrollRect _scrollrect;
         [SerializeField]
-        private int _dataCount = 50;
+        private int _startDataCount = 50;
 
-        [SerializeField]
+        [Header("Test Params")]
+        [SerializeField, Min(0)]
         private int _jumpToTestIndex = 10;
-        [SerializeField]
+
+        [SerializeField, Min(-1)]
         private int _insertDataIndex = -1;
-        [SerializeField]
+        [SerializeField, Min(0)]
+        private int _insertDataCount = -1;
+
+        [SerializeField, Min(-1)]
         private int _removeDataIndex = -1;
+        [SerializeField, Min(0)]
+        private int _removeDataCount = -1;
 
         private List<ChatData> m_chatList;
 
-        public int DataElementCount => _dataCount;
+        public int DataElementCount => (null == m_chatList) ? 0 : m_chatList.Count;
 
         public RectTransform RequestElement(RectTransform parent)
         {
@@ -108,7 +115,7 @@ namespace RecycleScrollView.Sample
         private void Awake()
         {
             m_chatList = new List<ChatData>();
-            for (int i = 0; i < _dataCount; i++)
+            for (int i = 0; i < _startDataCount; i++)
             {
                 m_chatList.Add(ChatData.CreateRandomOne());
             }
@@ -119,22 +126,42 @@ namespace RecycleScrollView.Sample
             _scrollController.Init(this);
         }
 
-        [ContextMenu(nameof(JumpToTest))]
-        private void JumpToTest()
+        [ContextMenu(nameof(JumpToData))]
+        private void JumpToData()
         {
             _scrollController.JumpToElementInstant(_jumpToTestIndex);
         }
 
-        [ContextMenu(nameof(AddDataTest))]
-        private void AddDataTest()
+        [ContextMenu(nameof(InsertData))]
+        private void InsertData()
         {
+            if (0 >= _insertDataCount)
+            {
+                return;
+            }
 
+            List<ChatData> toAdd = new List<ChatData>();
+            for (int i = 0; i < _insertDataCount; i++)
+            {
+                toAdd.Add(ChatData.CreateRandomOne());
+            }
+            int insertIndex = Mathf.Clamp(_insertDataIndex, 0, m_chatList.Count);
+            m_chatList.InsertRange(insertIndex, toAdd);
+            _scrollController.InsertElements(insertIndex, toAdd.Count);
         }
 
-        [ContextMenu(nameof(RemoveDataTest))]
-        private void RemoveDataTest()
+        [ContextMenu(nameof(RemoveData))]
+        private void RemoveData()
         {
+            if (0 >= _removeDataCount)
+            {
+                return;
+            }
 
+            int removeIndex = Mathf.Clamp(_removeDataIndex, 0, m_chatList.Count - 1);
+            int removeCount = Mathf.Min(_removeDataCount, m_chatList.Count - removeIndex);
+            m_chatList.RemoveRange(removeIndex, removeCount);
+            _scrollController.RemoveElements(removeIndex, removeCount);
         }
 
     }
