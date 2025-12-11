@@ -33,8 +33,6 @@ namespace RecycleScrollView.Sample
 
         private Dictionary<RectTransform, GuidElementUI> m_viewElementMap = new Dictionary<RectTransform, GuidElementUI>();
 
-        public event Action<int> OnDataElementCountChanged;
-
         public int DataElementCount => m_dataList.Count;
 
         public void Setup(List<GuidElementData> dataList)
@@ -121,6 +119,12 @@ namespace RecycleScrollView.Sample
                 m_dataList.RemoveRange(_removeIndex, _removeCount);
                 _gridScroll.RemoveElements(_removeIndex, _removeCount);
             }
+        }
+
+        [ContextMenu(nameof(DoJumpTo))]
+        private void DoJumpTo()
+        {
+            _gridScroll.JumpTo(_jumpToIndex);
         }
 
         private void Awake()

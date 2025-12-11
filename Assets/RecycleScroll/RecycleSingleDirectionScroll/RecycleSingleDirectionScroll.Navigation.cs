@@ -180,7 +180,11 @@ namespace RecycleScrollView
 
         private void InternalJumpToExistElement(int elementIndex, float normalizedScrollProgressBase, float normalizedScrollProgressOffset)
         {
-            Log($"InternalJumpToExistElement elementIndex_{elementIndex}; normalizedScrollProgressBase_{normalizedScrollProgressBase}; normalizedScrollProgressOffset_{normalizedScrollProgressOffset} || Frame:{Time.frameCount}");
+            // if (_enableLog)
+            // {
+            //     LogHelper.Log($"InternalJumpToExistElement elementIndex_{elementIndex}; normalizedScrollProgressBase_{normalizedScrollProgressBase}; normalizedScrollProgressOffset_{normalizedScrollProgressOffset}");
+            // }
+
             if (null == m_dataSource || elementIndex < 0 || elementIndex >= m_dataSource.DataElementCount)
             {
                 return;
@@ -206,7 +210,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogError($"Error case");
+                        LogHelper.LogError($"Error case");
                     }
                 }
                 else if (0f > tempMove)
@@ -217,7 +221,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogError($"Error case");
+                        LogHelper.LogError($"Error case");
                     }
                 }
                 else // 0f == tempMove // no need move
@@ -241,7 +245,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogError($"Error case");
+                        LogHelper.LogError($"Error case");
                     }
                 }
                 else if (0f < currentNormalizedProgressOffset)
@@ -254,12 +258,12 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogError($"Error case");
+                        LogHelper.LogError($"Error case");
                     }
                 }
 
-                // LogError($"Set progress {m_scrollProgress}->{targetProgress} || Frame:{Time.frameCount}");
-                // LogError($"Set base element {currentBaseIndex}->{elementIndex} || Frame:{Time.frameCount}");
+                // LogHelper.LogError($"Set progress {m_scrollProgress}->{targetProgress} || Frame:{Time.frameCount}");
+                // LogHelper.LogError($"Set base element {currentBaseIndex}->{elementIndex} || Frame:{Time.frameCount}");
                 while (tempIndex < elementIndex)
                 {
                     SetPreCacheElement(tempIndex + 1, ref m_preCacheTailElement);
@@ -304,7 +308,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogError($"Error case"); // TODO
+                        LogHelper.LogError($"Error case"); // TODO
                     }
                 }
                 else if (0f < normalizedScrollProgressOffset)
@@ -319,7 +323,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogError($"Error case"); // TODO
+                        LogHelper.LogError($"Error case"); // TODO
                     }
                 }
             }

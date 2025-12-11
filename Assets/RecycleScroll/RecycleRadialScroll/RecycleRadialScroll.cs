@@ -135,7 +135,7 @@ namespace RecycleScrollView
             }
             if (dataIndex + 1 - count < 0)
             {
-                Debug.LogError($"Remove data From index {dataIndex} count {count} will caused out of range issue");
+                LogHelper.LogError($"Remove data From index {dataIndex} count {count} will caused out of range issue");
                 return;
             }
 

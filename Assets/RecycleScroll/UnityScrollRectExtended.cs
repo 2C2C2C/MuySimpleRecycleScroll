@@ -32,12 +32,6 @@ namespace UnityEngine.UI
             base.Rebuild(CanvasUpdate.PostLayout);
         }
 
-        [ContextMenu(nameof(TestCalculateOffset))]
-        public void TestCalculateOffset()
-        {
-            Debug.LogError(CalculateCurrentOffset(Vector2.zero));
-        }
-
         public Vector2 CalculateCurrentOffset(Vector2 delta)
         {
             var viewBounds = new Bounds(viewRect.rect.center, viewRect.rect.size);

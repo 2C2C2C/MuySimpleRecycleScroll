@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.Extend;
-using UnityObject = UnityEngine.Object;
 
 namespace RecycleScrollView
 {
@@ -123,23 +122,6 @@ namespace RecycleScrollView
         }
 
 #endif
-        private void Log(string msg, UnityObject context = null)
-        {
-            if (_enableLog)
-            {
-                string formatedMsg = $"[RecycleScrollView] {msg} | Frame:{Time.frameCount}";
-                Debug.Log(formatedMsg, context: context);
-            }
-        }
-
-        private void LogError(string msg, UnityObject context = null)
-        {
-            if (_enableLog)
-            {
-                string formatedMsg = $"[RecycleScrollView] {msg} | Frame:{Time.frameCount}";
-                Debug.LogError(formatedMsg, context: context);
-            }
-        }
 
     }
 }

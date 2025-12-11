@@ -53,7 +53,7 @@ namespace RecycleScrollView.Sample
         [SerializeField]
         private int _jumpToTestIndex = 10;
         [SerializeField]
-        private int _addDataIndex = -1;
+        private int _insertDataIndex = -1;
         [SerializeField]
         private int _removeDataIndex = -1;
 

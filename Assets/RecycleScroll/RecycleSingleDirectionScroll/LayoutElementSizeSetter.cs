@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -59,15 +57,17 @@ namespace RecycleScrollView
             }
             else
             {
-                Debug.LogError($"SizeSource should be ILayoutElement", context: this);
+                LogHelper.LogError($"SizeSource should be ILayoutElement", context: this);
             }
         }
 
 #if UNITY_EDITOR
+
         private void Reset()
         {
             TryGetComponent<LayoutElement>(out _layoutElement);
         }
+
 #endif
 
     }

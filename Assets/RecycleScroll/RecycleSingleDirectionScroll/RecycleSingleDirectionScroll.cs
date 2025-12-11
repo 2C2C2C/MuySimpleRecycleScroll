@@ -62,7 +62,7 @@ namespace RecycleScrollView
         {
             if (HasDataSource)
             {
-                LogError($"Already register a datasource");
+                LogHelper.LogError($"Already register a datasource");
             }
             else
             {
@@ -159,7 +159,7 @@ namespace RecycleScrollView
             }
             if (dataIndex + 1 - count < 0)
             {
-                LogError($"Remove data From index {dataIndex} count {count} will caused out of range issue");
+                LogHelper.LogError($"Remove data From index {dataIndex} count {count} will caused out of range issue");
                 return;
             }
 
@@ -301,7 +301,7 @@ namespace RecycleScrollView
                 }
                 else
                 {
-                    LogError($"Vertical scroll need a VerticalLayoutGroup on content");
+                    LogHelper.LogError($"Vertical scroll need a VerticalLayoutGroup on content");
                 }
             }
             else if (IsHorizontal)
@@ -324,7 +324,7 @@ namespace RecycleScrollView
                 }
                 else
                 {
-                    LogError($"Horizontal scroll need a HorizontalLayoutGroup on content");
+                    LogHelper.LogError($"Horizontal scroll need a HorizontalLayoutGroup on content");
                 }
             }
         }
@@ -365,7 +365,10 @@ namespace RecycleScrollView
             bool hasAdjustedElements = AdjustElementsIfNeed();
             if (hasAdjustedElements)
             {
-                Log($"InternalAdjustment once");
+                // if (_enableLog)
+                // {
+                //     LogHelper.Log($"InternalAdjustment once");
+                // }
                 // HACK Becuz I change the anchored position of drag content, so I need to adjust the prev value here. 
                 Vector2 newStartPos = content.anchoredPosition - anchorPositionDelta;
                 _scrollRect.ContentStartPos = newStartPos;
@@ -408,7 +411,7 @@ namespace RecycleScrollView
             m_dataSource.InitElement(requestedElement, ElementIndexDataIndex2WayConvert(elementIndex));
             if (!requestedElement.TryGetComponent<RecycleSingleDirectionScrollElement>(out newElement))
             {
-                LogError($"Receive wrong element");
+                LogHelper.LogError($"Receive wrong element");
             }
             newElement.CalculatePreferredSize();
 
@@ -467,7 +470,10 @@ namespace RecycleScrollView
                 else
                 {
                     --m_hasSetScrollBarValueThisFrame;
-                    Log($"Skip scroll progress sync once");
+                    if (_enableLog)
+                    {
+                        // LogHelper.Log($"Skip scroll progress sync once");
+                    }
                 }
             }
             m_hasAdjustElementsCurrentFrame = false;
