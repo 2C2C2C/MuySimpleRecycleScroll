@@ -9,8 +9,8 @@ namespace RecycleScrollView
         private const int SIDE_STATUS_NEEDADD = -1;
         private const int SIDE_STATUS_NEEDREMOVE = 1;
 
-        private const float EDGE_HEAD = 0F;
-        private const float EDGE_TAIL = 1F;
+        private const float EDGE_HEAD = 0f;
+        private const float EDGE_TAIL = 1f;
 
         private void AddElementToHead(int elementIndex)
         {
@@ -22,7 +22,7 @@ namespace RecycleScrollView
             // Set pre cache element
             int indexForPreCache = (0 < elementIndex) ? elementIndex - 1 : 0;
             SetPreCacheElement(indexForPreCache, ref m_preCacheHeadElement);
-            // Log($"Add on top index {elementIndex} Time {Time.time}");
+            // LogHelper.Log($"Add on top index {elementIndex} Time {Time.time}");
         }
 
         private void AddElementToTail(int elementIndex)
@@ -35,7 +35,7 @@ namespace RecycleScrollView
             int dataCount = m_dataSource.DataElementCount;
             int indexForPreCache = (dataCount - 1 > elementIndex) ? elementIndex + 1 : elementIndex;
             SetPreCacheElement(indexForPreCache, ref m_preCacheTailElement);
-            // Log($"Add on bottom index {elementIndex} Time {Time.time}");
+            // LogHelper.Log($"Add on bottom index {elementIndex} Time {Time.time}");
         }
 
         private void RemoveElementFromHead()
@@ -114,7 +114,7 @@ namespace RecycleScrollView
             return SIDE_STATUS_ENOUGH;
         }
 
-        /// <returns>-1 Need add, 0 Enough, 1 Need remove</returns>
+        /// <returns> -1 Need add, 0 Enough, 1 Need remove</returns>
         private int CheckTailSideStatus()
         {
             if (null == m_dataSource)
@@ -158,7 +158,6 @@ namespace RecycleScrollView
         /// <param name="indexOfUsingElements"> Index in the list of current in using elements </param>
         /// <param name="normalizedElementEdgePosition"> Head(0) ~ Tail(1) </param>
         /// <param name="normalizedViewportEdgePosition"> Head(0) ~ Tail(1) </param>
-        /// <returns></returns>
         private bool IsElementEdgeBeyoudViewportEdge(int indexOfUsingElements, float normalizedViewportEdgePosition, float normalizedElementEdgePosition, ScrollDirection checkDirection)
         {
             if (0 > indexOfUsingElements || indexOfUsingElements >= m_currentUsingElements.Count)
@@ -171,9 +170,9 @@ namespace RecycleScrollView
             Vector2 viewportSize = viewport.rect.size;
             Vector2 viewportEdgeRectPosition = CalculateNormalizedRectPosition(normalizedViewportEdgePosition);
             viewportEdgeRectPosition = new Vector2(viewportSize.x * viewportEdgeRectPosition.x, viewportSize.y * viewportEdgeRectPosition.y);
-            // ContentPivotRectPositionInViewport
             Vector2 baseRectPosition = RectTransformEx.TransformLocalPositionToRectPosition(viewport, content.localPosition);
 
+            // HACK Do not directly use the content size from RectTransform cuz it may not be updated yet
             float tempSize = CalculateCurrentContentTotalPreferredSize(indexOfUsingElements);
             Vector2 elementEdgeRectPosition = CalculateNormalizedRectPosition(normalizedElementEdgePosition);
             RecycleSingleDirectionScrollElement element = m_currentUsingElements[indexOfUsingElements];
@@ -229,7 +228,7 @@ namespace RecycleScrollView
             {
                 float removeSize = 0f;
                 RectTransform content = _scrollRect.content;
-                while (SIDE_STATUS_NEEDREMOVE == CheckHeadSideStatus() && -1 != CalculateAvailabeNextTailElementIndex())
+                while (SIDE_STATUS_NEEDREMOVE == CheckHeadSideStatus() && INVALID_INDEX != CalculateAvailabeNextTailElementIndex())
                 {
                     RecycleSingleDirectionScrollElement toRemove = m_currentUsingElements[0];
                     if (IsVertical)
@@ -272,7 +271,7 @@ namespace RecycleScrollView
             int prevElementCount = m_currentUsingElements.Count;
             if (0 < prevElementCount)
             {
-                while (SIDE_STATUS_NEEDREMOVE == CheckTailSideStatus() && -1 != CalculateAvailabeNextHeadElementIndex())
+                while (SIDE_STATUS_NEEDREMOVE == CheckTailSideStatus() && INVALID_INDEX != CalculateAvailabeNextHeadElementIndex())
                 {
                     RemoveElementFromTail();
                     hasRemoveElements = true;
@@ -287,7 +286,7 @@ namespace RecycleScrollView
             RectTransform content = _scrollRect.content;
             float addSize = 0f;
             int canAddIndex;
-            while (SIDE_STATUS_NEEDADD == CheckHeadSideStatus() && -1 != (canAddIndex = CalculateAvailabeNextHeadElementIndex()))
+            while (SIDE_STATUS_NEEDADD == CheckHeadSideStatus() && INVALID_INDEX != (canAddIndex = CalculateAvailabeNextHeadElementIndex()))
             {
                 AddElementToHead(canAddIndex);
                 if (IsVertical)
@@ -329,16 +328,16 @@ namespace RecycleScrollView
             while (SIDE_STATUS_NEEDADD == CheckTailSideStatus())
             {
                 int canAddIndex = CalculateAvailabeNextTailElementIndex();
-                if (-1 != canAddIndex)
+                if (INVALID_INDEX == canAddIndex)
+                {
+                    break;
+                }
+                else
                 {
                     AddElementToTail(canAddIndex);
                     addCount++;
                 }
-                else
-                {
-                    break;
-                }
-                // HACK Since I force the pivot of content, no need to adjust position at this case
+                // HACK Since I use fixed pivot of content, no need to adjust position at this case
             }
             return 0 < addCount;
         }

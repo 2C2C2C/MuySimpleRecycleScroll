@@ -21,7 +21,9 @@ namespace RecycleScrollView
         [SerializeField] // HACK Cache the element dat used to calculate size
         private RectTransform _preCacheContainer;
 
+        /// <summary> Cache a element for calculate gap size for head element </summary>
         private RecycleSingleDirectionScrollElement m_preCacheHeadElement;
+        /// <summary> Cache a element for calculate gap size for tail element </summary>
         private RecycleSingleDirectionScrollElement m_preCacheTailElement;
 
         private bool m_hasAdjustElementsCurrentFrame = false;
@@ -365,10 +367,6 @@ namespace RecycleScrollView
             bool hasAdjustedElements = AdjustElementsIfNeed();
             if (hasAdjustedElements)
             {
-                // if (_enableLog)
-                // {
-                //     LogHelper.Log($"InternalAdjustment once");
-                // }
                 // HACK Becuz I change the anchored position of drag content, so I need to adjust the prev value here. 
                 Vector2 newStartPos = content.anchoredPosition - anchorPositionDelta;
                 _scrollRect.ContentStartPos = newStartPos;
@@ -411,7 +409,7 @@ namespace RecycleScrollView
             m_dataSource.InitElement(requestedElement, ElementIndexDataIndex2WayConvert(elementIndex));
             if (!requestedElement.TryGetComponent<RecycleSingleDirectionScrollElement>(out newElement))
             {
-                LogHelper.LogError($"Receive wrong element");
+                LogHelper.LogError($"Receive wrong element with index_{elementIndex}");
             }
             newElement.CalculatePreferredSize();
 

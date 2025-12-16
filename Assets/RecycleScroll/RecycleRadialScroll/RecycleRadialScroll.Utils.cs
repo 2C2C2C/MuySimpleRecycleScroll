@@ -49,7 +49,7 @@ namespace RecycleScrollView
                     return elementIndex;
                 }
             }
-            return -1;
+            return INVALID_INDEX;
         }
 
         private bool IsElementRectInterestedWithViewport(Vector3 elementWorldPos, Vector2 elementSize)

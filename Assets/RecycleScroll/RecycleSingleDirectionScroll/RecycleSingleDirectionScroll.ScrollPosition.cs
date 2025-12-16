@@ -161,7 +161,7 @@ namespace RecycleScrollView
                 return true;
             }
 
-            elementIndex = -1;
+            elementIndex = INVALID_INDEX;
             normalizedScrollProgressBase = 0f;
             normalizedScrollProgressOffset = 0f;
             return false;

@@ -32,50 +32,6 @@ namespace UnityEngine.UI
             base.Rebuild(CanvasUpdate.PostLayout);
         }
 
-        public Vector2 CalculateCurrentOffset(Vector2 delta)
-        {
-            var viewBounds = new Bounds(viewRect.rect.center, viewRect.rect.size);
-            Bounds contentBounds = m_ContentBounds;
-            Vector2 offset = Vector2.zero;
-            if (movementType == MovementType.Unrestricted)
-                return offset;
-
-            Vector2 min = contentBounds.min;
-            Vector2 max = contentBounds.max;
-
-            // min/max offset extracted to check if approximately 0 and avoid recalculating layout every frame (case 1010178)
-
-            if (horizontal)
-            {
-                min.x += delta.x;
-                max.x += delta.x;
-
-                float maxOffset = viewBounds.max.x - max.x;
-                float minOffset = viewBounds.min.x - min.x;
-
-                if (minOffset < -0.001f)
-                    offset.x = minOffset;
-                else if (maxOffset > 0.001f)
-                    offset.x = maxOffset;
-            }
-
-            if (vertical)
-            {
-                min.y += delta.y;
-                max.y += delta.y;
-
-                float maxOffset = viewBounds.max.y - max.y;
-                float minOffset = viewBounds.min.y - min.y;
-
-                if (maxOffset > 0.001f)
-                    offset.y = maxOffset;
-                else if (minOffset < -0.001f)
-                    offset.y = minOffset;
-            }
-
-            return offset;
-        }
-
         protected override void LateUpdate()
         {
             BeforeLateUpdate?.Invoke();

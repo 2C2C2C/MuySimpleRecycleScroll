@@ -182,7 +182,7 @@ namespace RecycleScrollView
         {
             if (null == m_dataSource || 0 == m_dataSource.DataElementCount)
             {
-                return -1;
+                return INVALID_INDEX;
             }
             if (0 == m_currentUsingElements.Count)
             {
@@ -192,7 +192,7 @@ namespace RecycleScrollView
             int index = m_currentUsingElements[0].ElementIndex;
             if (0 >= index)
             {
-                return -1;
+                return INVALID_INDEX;
             }
             return index - 1;
         }
@@ -203,7 +203,7 @@ namespace RecycleScrollView
         {
             if (null == m_dataSource || 0 == m_dataSource.DataElementCount)
             {
-                return -1;
+                return INVALID_INDEX;
             }
             if (0 == m_currentUsingElements.Count)
             {
@@ -214,7 +214,7 @@ namespace RecycleScrollView
             int index = m_currentUsingElements[m_currentUsingElements.Count - 1].ElementIndex;
             if (dataCount - 1 <= index)
             {
-                return -1;
+                return INVALID_INDEX;
             }
             return index + 1;
         }
@@ -222,13 +222,13 @@ namespace RecycleScrollView
         public int GetCurrentShowingElementIndexTailBound()
         {
             int elementCount = m_currentUsingElements.Count;
-            return (0 < elementCount) ? m_currentUsingElements[elementCount - 1].ElementIndex : -1;
+            return (0 < elementCount) ? m_currentUsingElements[elementCount - 1].ElementIndex : INVALID_INDEX;
         }
 
         public int GetCurrentShowingElementIndexHeadBound()
         {
             int elementCount = m_currentUsingElements.Count;
-            return (0 < elementCount) ? m_currentUsingElements[0].ElementIndex : -1;
+            return (0 < elementCount) ? m_currentUsingElements[0].ElementIndex : INVALID_INDEX;
         }
 
         private Vector2 GetScrollDirectionVector(ScrollDirection scrollDirection)
@@ -248,7 +248,7 @@ namespace RecycleScrollView
         private Vector3 ClampLocalPosForHead(Vector3 localPositionInViewport)
         {
             Vector3 result = localPositionInViewport;
-            if (-1 == CalculateAvailabeNextHeadElementIndex())
+            if (INVALID_INDEX == CalculateAvailabeNextHeadElementIndex())
             {
                 RectTransform viewport = _scrollRect.viewport;
                 Vector2 edgeHead = CalculateNormalizedRectPosition(0f);
@@ -278,7 +278,7 @@ namespace RecycleScrollView
         private Vector3 ClampLocalPosForTail(Vector3 localPositionInViewport)
         {
             Vector3 result = localPositionInViewport;
-            if (-1 == CalculateAvailabeNextTailElementIndex())
+            if (INVALID_INDEX == CalculateAvailabeNextTailElementIndex())
             {
                 RectTransform viewport = _scrollRect.viewport;
                 Vector2 contentHeadRectPositionInViewport = RectTransformEx.TransformLocalPositionToRectPosition(viewport, result);

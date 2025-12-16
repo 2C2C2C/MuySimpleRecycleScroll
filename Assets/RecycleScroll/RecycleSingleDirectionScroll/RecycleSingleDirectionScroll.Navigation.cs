@@ -105,7 +105,7 @@ namespace RecycleScrollView
             headRectPosition = new Vector2(viewportSize.x * headRectPosition.x, viewportSize.y * headRectPosition.y);
             int canAddIndex;
             float spacing = _scrollParam.spacing;
-            while (-1 != (canAddIndex = CalculateAvailabeNextHeadElementIndex()))
+            while (INVALID_INDEX != (canAddIndex = CalculateAvailabeNextHeadElementIndex()))
             {
                 AddElementToHead(canAddIndex);
                 Vector2 size = m_currentUsingElements[0].ElementPreferredSize;
@@ -409,7 +409,7 @@ namespace RecycleScrollView
             headRectPosition = new Vector2(viewportSize.x * headRectPosition.x, viewportSize.y * headRectPosition.y);
             int canAddIndex;
             float spacing = _scrollParam.spacing;
-            while (-1 != (canAddIndex = CalculateAvailabeNextHeadElementIndex()))
+            while (INVALID_INDEX != (canAddIndex = CalculateAvailabeNextHeadElementIndex()))
             {
                 AddElementToHead(canAddIndex);
                 Vector2 size = m_currentUsingElements[0].ElementPreferredSize;

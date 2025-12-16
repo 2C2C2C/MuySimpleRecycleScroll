@@ -114,7 +114,7 @@ namespace RecycleScrollView
                 if (0 == round) // HACK only for 0 round case
                 {
                     bool currentInterestedWithViewport = IsElementRectInterestedWithViewport(elementWorldPosition, _previewElementSize);
-                    if (-1 == prevValiid0RoundElementIndex)
+                    if (INVALID_INDEX == prevValiid0RoundElementIndex)
                     {
                         if (currentInterestedWithViewport)
                         {
