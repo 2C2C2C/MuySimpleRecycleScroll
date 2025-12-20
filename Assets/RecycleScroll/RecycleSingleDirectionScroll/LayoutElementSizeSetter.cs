@@ -57,7 +57,7 @@ namespace RecycleScrollView
             }
             else
             {
-                LogHelper.LogError($"SizeSource should be ILayoutElement", context: this);
+                RecycleScrollLogger.LogError($"SizeSource should be ILayoutElement", context: this);
             }
         }
 

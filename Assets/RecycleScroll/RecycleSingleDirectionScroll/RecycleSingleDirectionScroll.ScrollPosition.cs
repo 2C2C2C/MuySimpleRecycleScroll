@@ -117,7 +117,7 @@ namespace RecycleScrollView
             {
                 if (_enableLog)
                 {
-                    LogHelper.Log($"Sync scroll progress from {m_scrollProgress} to {scrollPogress} by scroll content.");
+                    RecycleScrollLogger.Log($"Sync scroll progress from {m_scrollProgress} to {scrollPogress} by scroll content.");
                 }
                 m_scrollProgress = scrollPogress;
                 float scrollBarValue = 1f - m_scrollProgress;
@@ -193,7 +193,7 @@ namespace RecycleScrollView
 
             if (0 == m_tempList.Count)
             {
-                LogHelper.LogError($"Can not calculate progress.");
+                RecycleScrollLogger.LogError($"Can not calculate progress.");
                 result = m_scrollProgress;
                 return false;
             }
@@ -315,7 +315,7 @@ namespace RecycleScrollView
                 }
                 else
                 {
-                    LogHelper.LogError($"Wrong case"); // Should not get this case
+                    RecycleScrollLogger.LogError($"Wrong case"); // Should not get this case
                 }
             }
             // Less than pre-calculated base position -> try gap to previous element
@@ -350,7 +350,7 @@ namespace RecycleScrollView
                 }
                 else
                 {
-                    LogHelper.LogError($"Wrong case"); // Should not get this case
+                    RecycleScrollLogger.LogError($"Wrong case"); // Should not get this case
                 }
             }
             return false;
@@ -384,7 +384,7 @@ namespace RecycleScrollView
                 m_hasAdjustElementsCurrentFrame = true;
                 if (_enableLog)
                 {
-                    LogHelper.Log($"Apply scroll progress from {m_scrollProgress} to {normalizedProgress} by scrollbar");
+                    RecycleScrollLogger.Log($"Apply scroll progress from {m_scrollProgress} to {normalizedProgress} by scrollbar");
                 }
                 m_scrollProgress = normalizedProgress;
                 _scrollBar.SetValueWithoutNotify(m_virtualNormalizedScrollBarValue = clampedBarValue);
@@ -393,7 +393,7 @@ namespace RecycleScrollView
             {
                 if (_enableLog)
                 {
-                    LogHelper.LogError($"Apply scroll progress from {m_scrollProgress} to {normalizedProgress} by scrollbar FAIL!!!");
+                    RecycleScrollLogger.LogError($"Apply scroll progress from {m_scrollProgress} to {normalizedProgress} by scrollbar FAIL!!!");
                 }
                 _scrollBar.SetValueWithoutNotify(m_virtualNormalizedScrollBarValue);
             }

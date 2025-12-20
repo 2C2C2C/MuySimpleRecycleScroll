@@ -101,13 +101,13 @@ namespace RecycleScrollView
         {
             if (HasDataSource)
             {
-                LogHelper.LogError($"Init failed, the already has data source");
+                RecycleScrollLogger.LogError($"Init failed, the already has data source");
             }
             else
             {
                 if (null == source)
                 {
-                    LogHelper.LogError("Init failed, the listview is null", context: this);
+                    RecycleScrollLogger.LogError("Init failed, the listview is null", context: this);
                     return;
                 }
                 m_dataSource = source;
@@ -336,7 +336,7 @@ namespace RecycleScrollView
                     RectTransform target = m_dataSource.RequestElement(_gridContainer);
                     if (!target.gameObject.TryGetComponent<RecycleGridScrollElement>(out RecycleGridScrollElement added))
                     {
-                        LogHelper.LogError("[RecycleScrollGrid] The element prefab does not have RecycleScrollGridElement component", target.gameObject);
+                        RecycleScrollLogger.LogError("[RecycleScrollGrid] The element prefab does not have RecycleScrollGridElement component", target.gameObject);
                         return;
                     }
                     added.SetElementSize(gridSize);

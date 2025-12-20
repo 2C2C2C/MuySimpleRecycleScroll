@@ -167,7 +167,7 @@ namespace RecycleScrollView.Sample
             }
             if (_removeCount > DataElementCount || DataElementCount - 1 < _removeIndex + _removeCount - 1 || -1 == _removeIndex)
             {
-                LogHelper.LogError($"Out of range");
+                RecycleScrollLogger.LogError($"Out of range");
                 return;
             }
             

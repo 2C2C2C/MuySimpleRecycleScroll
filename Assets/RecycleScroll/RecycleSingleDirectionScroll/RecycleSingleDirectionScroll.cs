@@ -64,7 +64,7 @@ namespace RecycleScrollView
         {
             if (HasDataSource)
             {
-                LogHelper.LogError($"Already register a datasource");
+                RecycleScrollLogger.LogError($"Already register a datasource");
             }
             else
             {
@@ -161,7 +161,7 @@ namespace RecycleScrollView
             }
             if (dataIndex + 1 - count < 0)
             {
-                LogHelper.LogError($"Remove data From index {dataIndex} count {count} will caused out of range issue");
+                RecycleScrollLogger.LogError($"Remove data From index {dataIndex} count {count} will caused out of range issue");
                 return;
             }
 
@@ -303,7 +303,7 @@ namespace RecycleScrollView
                 }
                 else
                 {
-                    LogHelper.LogError($"Vertical scroll need a VerticalLayoutGroup on content");
+                    RecycleScrollLogger.LogError($"Vertical scroll need a VerticalLayoutGroup on content");
                 }
             }
             else if (IsHorizontal)
@@ -326,7 +326,7 @@ namespace RecycleScrollView
                 }
                 else
                 {
-                    LogHelper.LogError($"Horizontal scroll need a HorizontalLayoutGroup on content");
+                    RecycleScrollLogger.LogError($"Horizontal scroll need a HorizontalLayoutGroup on content");
                 }
             }
         }
@@ -409,7 +409,7 @@ namespace RecycleScrollView
             m_dataSource.InitElement(requestedElement, ElementIndexDataIndex2WayConvert(elementIndex));
             if (!requestedElement.TryGetComponent<RecycleSingleDirectionScrollElement>(out newElement))
             {
-                LogHelper.LogError($"Receive wrong element with index_{elementIndex}");
+                RecycleScrollLogger.LogError($"Receive wrong element with index_{elementIndex}");
             }
             newElement.CalculatePreferredSize();
 

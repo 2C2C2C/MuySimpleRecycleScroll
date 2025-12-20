@@ -210,7 +210,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogHelper.LogError($"Error case");
+                        RecycleScrollLogger.LogError($"Error case");
                     }
                 }
                 else if (0f > tempMove)
@@ -221,7 +221,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogHelper.LogError($"Error case");
+                        RecycleScrollLogger.LogError($"Error case");
                     }
                 }
                 else // 0f == tempMove // no need move
@@ -245,7 +245,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogHelper.LogError($"Error case");
+                        RecycleScrollLogger.LogError($"Error case");
                     }
                 }
                 else if (0f < currentNormalizedProgressOffset)
@@ -258,7 +258,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogHelper.LogError($"Error case");
+                        RecycleScrollLogger.LogError($"Error case");
                     }
                 }
 
@@ -308,7 +308,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogHelper.LogError($"Error case"); // TODO
+                        RecycleScrollLogger.LogError($"Error case"); // TODO
                     }
                 }
                 else if (0f < normalizedScrollProgressOffset)
@@ -323,7 +323,7 @@ namespace RecycleScrollView
                     }
                     else
                     {
-                        LogHelper.LogError($"Error case"); // TODO
+                        RecycleScrollLogger.LogError($"Error case"); // TODO
                     }
                 }
             }
