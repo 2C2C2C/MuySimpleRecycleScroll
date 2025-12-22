@@ -21,6 +21,7 @@ namespace RecycleScrollView
             JumpToElementInstant(ElementIndexDataIndex2WayConvert(dataIndex), _defaultNavigationParams);
         }
 
+        // TODO Maybe remove this later
         public void JumpToElementInstant(int elementIndex, SingleScrollElementNavigationParams navigationParams)
         {
             if (null == m_dataSource || elementIndex < 0 || elementIndex >= m_dataSource.DataElementCount)
@@ -33,6 +34,7 @@ namespace RecycleScrollView
             if (TryGetShowingElement(elementIndex, out RecycleSingleDirectionScrollElement element))
             {
                 Vector2 delta = Vector2.zero;
+                Vector2 localPosition = content.localPosition;
                 if (IsHorizontal)
                 {
                     Vector2 verticalPostion = RectTransformEx.TransformNormalizedRectPositionToLocalPosition(viewport, new Vector2(0f, navigationParams.normalizedPositionInViewPort));
@@ -40,6 +42,7 @@ namespace RecycleScrollView
                     elementPosition = viewport.InverseTransformPoint(elementPosition);
                     delta = verticalPostion - elementPosition;
                     // LogError($"elementPosition_{elementPosition} -> verticalPostion_{verticalPostion}");
+                    delta.y = localPosition.y;
                 }
                 else if (IsVertical)
                 {
@@ -48,8 +51,8 @@ namespace RecycleScrollView
                     elementPosition = viewport.InverseTransformPoint(elementPosition);
                     delta = horizontalPosition - elementPosition;
                     // LogError($"elementPosition_{elementPosition} -> horizontalPosition_{horizontalPosition}");
+                    delta.x = localPosition.x;
                 }
-                Vector2 localPosition = content.localPosition;
                 localPosition += delta;
                 content.localPosition = localPosition;
                 ForceRebuildAndStopMove();
