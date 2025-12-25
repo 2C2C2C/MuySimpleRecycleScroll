@@ -106,7 +106,7 @@ namespace RecycleScrollView
 
         public void ClampNormalizedPositionAndOffset(Vector2 basePosition, Vector2 offset, out Vector2 finalPosition, out Vector2 finalOffset)
         {
-            Vector2 normalizedMove = m_source.ConvertToNormalizedMoveFromCurrentPosition(offset, out finalOffset);
+            Vector2 normalizedMove = m_target.ConvertToNormalizedMoveFromCurrentPosition(offset, out finalOffset);
             finalPosition = basePosition + normalizedMove;
             finalPosition.x = Mathf.Clamp01(finalPosition.x);
             finalPosition.y = Mathf.Clamp01(finalPosition.y);

@@ -90,20 +90,31 @@ namespace RecycleScrollView
                 ClampNormalizedPositionAndOffset(m_dragStartNormalizedPosition, tempMoveDelta, out Vector2 nextNormalizedPos, out Vector2 nextOffset);
                 if (Vector2.zero != nextOffset)
                 {
-                    if (_movementType == MovementType.Elastic)
+                    switch (_movementType)
                     {
-                        if (nextOffset.x != 0)
-                            nextOffset.x -= RubberDelta(nextOffset.x, m_viewportBounds.size.x);
-                        if (nextOffset.y != 0)
-                            nextOffset.y -= RubberDelta(nextOffset.y, m_viewportBounds.size.y);
+                        case MovementType.Elastic:
+                            if (nextOffset.x != 0)
+                            {
+                                nextOffset.x -= RubberDelta(nextOffset.x, m_viewportBounds.size.x);
+                            }
+                            if (nextOffset.y != 0)
+                            {
+                                nextOffset.y -= RubberDelta(nextOffset.y, m_viewportBounds.size.y);
+                            }
+                            break;
+                        case MovementType.Clamped:
+                            nextOffset = Vector2.zero;
+                            break;
+                        default:
+                            break;
                     }
-                    // RecycleScrollLogger.LogError($"move {tempMoveDelta}; base position {m_dragStartNormalizedPosition} ;normalizedMove {nextNormalizedPos - m_dragStartNormalizedPosition}; result pos {nextNormalizedPos}; offset {m_beyoudEdgeOffset}");
+                    // RecycleScrollLogger.Log($"move {tempMoveDelta}; base position {m_dragStartNormalizedPosition} ;normalizedMove {nextNormalizedPos - m_dragStartNormalizedPosition}; result pos {nextNormalizedPos}; offset {m_beyoudEdgeOffset}");
                 }
                 else
                 {
                     nextOffset = Vector2.zero;
                 }
-                
+
                 InternalSetNormalizedPosition(nextNormalizedPos, nextOffset);
             }
         }
@@ -139,6 +150,10 @@ namespace RecycleScrollView
 
             Vector2 move = delta * _scrollSensitivity;
             ClampNormalizedPositionAndOffset(NormalizedPosition, move, out Vector2 nextNormalizedPos, out Vector2 nextOffset);
+            if (MovementType.Clamped == _movementType)
+            {
+                nextOffset = Vector2.zero;
+            }
             SetNormalizedPositionWithNotifyIfNeed(nextNormalizedPos, nextOffset);
             UpdateBounds();
         }
