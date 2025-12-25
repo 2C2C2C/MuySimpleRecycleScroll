@@ -5,7 +5,7 @@ using MovementType = UnityEngine.UI.ScrollRect.MovementType;
 namespace RecycleScrollView
 {
     // Handle inputs for scroller
-    public partial class Scroller : IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler, IScrollHandler
+    public sealed partial class Scroller : IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler, IDragHandler, IScrollHandler
     {
         public void OnInitializePotentialDrag(PointerEventData eventData)
         {

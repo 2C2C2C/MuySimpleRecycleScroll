@@ -22,6 +22,16 @@ namespace RecycleScrollView
             m_contentBounds = new Bounds(_viewport.rect.center, contentSize);
         }
 
+        private void SetNormalizedPosition(float value, int axis)
+        {
+            UpdateBounds();
+            Vector2 newOffset = BeyoudEdgeOffset;
+            newOffset[axis] = 0f;
+            Vector2 newNormalizedPosition = NormalizedPosition;
+            newNormalizedPosition[axis] = value;
+            InternalSetNormalizedPosition(newNormalizedPosition, newOffset);
+        }
+
         /// <summary> Update bounds for virtual content </summary>
         private void UpdateBounds()
         {

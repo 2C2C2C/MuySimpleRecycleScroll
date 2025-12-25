@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using MovementType = UnityEngine.UI.ScrollRect.MovementType;
-using ScrollRectEvent = UnityEngine.UI.ScrollRect.ScrollRectEvent;
 
 namespace RecycleScrollView
 {
@@ -11,7 +10,7 @@ namespace RecycleScrollView
     /// The scroll position is described by normalized position and the offset beyound viewport edge.
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public partial class Scroller : UIBehaviour
+    public sealed partial class Scroller : UIBehaviour
     {
         /// <summary> Arg 1 noralized position, Arg 2 beyoud edge offset </summary>
         public class ScrollerValueChanged : UnityEvent<Vector2, Vector2> { }
@@ -136,6 +135,7 @@ namespace RecycleScrollView
         {
             m_noramlizedPosition = normalizedPosition;
             m_beyoudEdgeOffset = extraOffset;
+            SyncValueToScrollBar();
             UpdateBounds();
         }
 
@@ -143,6 +143,7 @@ namespace RecycleScrollView
         {
             m_noramlizedPosition = normalizedPosition;
             m_beyoudEdgeOffset = extraOffset;
+            SyncValueToScrollBar();
             UpdateBounds();
             _onScrollerValueChanged?.Invoke(m_noramlizedPosition, BeyoudEdgeOffset);
         }
@@ -153,13 +154,18 @@ namespace RecycleScrollView
             UpdateBounds();
         }
 
+        protected override void OnEnable()
+        {
+            BindScrollBars();
+        }
+
         protected override void OnDisable()
         {
+            UnbindScrollBars();
             // Reset some flags
             m_dragPointerId = int.MaxValue;
             m_isDragging = false;
             m_isScrolling = false;
-            base.OnDisable();
         }
 
         private void LateUpdate()

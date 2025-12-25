@@ -32,5 +32,5 @@ Basic functionalities provided:
 
 - [x] Simple samples
 - [ ] Bug fixing
-- [ ] A simple virtual scroller for all scrolls
+- [ ] A simple virtual scroller for all scrolls(With this, I can also consider adding infinite scroll :D)
 - [ ] Another scroll bar behaviour for SingleDirectionScroll which based on total scoll length
